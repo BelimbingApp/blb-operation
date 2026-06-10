@@ -2,6 +2,10 @@
 
 namespace App\Modules\Operation\IT;
 
+use App\Base\AI\Contracts\Tool;
+use App\Modules\Core\AI\Contracts\AgentTaskContextContributor;
+use App\Modules\Operation\IT\Services\TicketContextContributor;
+use App\Modules\Operation\IT\Tools\TicketUpdateTool;
 use Illuminate\Support\ServiceProvider as BaseServiceProvider;
 
 class ServiceProvider extends BaseServiceProvider
@@ -11,7 +15,11 @@ class ServiceProvider extends BaseServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(TicketUpdateTool::class);
+        $this->app->tag(TicketUpdateTool::class, Tool::CONTAINER_TAG);
+
+        $this->app->singleton(TicketContextContributor::class);
+        $this->app->tag(TicketContextContributor::class, AgentTaskContextContributor::CONTAINER_TAG);
     }
 
     /**

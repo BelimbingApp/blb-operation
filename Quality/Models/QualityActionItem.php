@@ -35,7 +35,7 @@ class QualityActionItem extends Model
      *
      * @var string
      */
-    protected $table = 'quality_action_items';
+    protected $table = 'operation_quality_action_items';
 
     /**
      * The attributes that are mass assignable.

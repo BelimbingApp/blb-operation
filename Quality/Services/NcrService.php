@@ -87,8 +87,8 @@ class NcrService
                 });
             } catch (QueryException $exception) {
                 if ($attempt < self::NUMBERING_RETRY_LIMIT && $this->causedByDuplicateNumber($exception, [
-                    'quality_ncrs.ncr_no',
-                    'quality_ncrs_ncr_no_unique',
+                    'operation_quality_ncrs.ncr_no',
+                    'operation_quality_ncrs_ncr_no_unique',
                 ])) {
                     continue;
                 }

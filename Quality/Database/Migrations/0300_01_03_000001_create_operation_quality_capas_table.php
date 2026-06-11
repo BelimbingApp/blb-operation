@@ -10,9 +10,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('quality_capas', function (Blueprint $table): void {
+        Schema::create('operation_quality_capas', function (Blueprint $table): void {
             $table->id();
-            $table->foreignId('ncr_id')->index()->constrained('quality_ncrs')->cascadeOnDelete();
+            $table->foreignId('ncr_id')->index()->constrained('operation_quality_ncrs')->cascadeOnDelete();
             $table->string('workflow_status')->default('triage_pending');
             $table->text('triage_summary')->nullable();
             $table->string('triage_confidence')->nullable();
@@ -54,6 +54,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('quality_capas');
+        Schema::dropIfExists('operation_quality_capas');
     }
 };

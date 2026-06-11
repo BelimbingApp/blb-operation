@@ -10,7 +10,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('quality_evidence', function (Blueprint $table): void {
+        Schema::create('operation_quality_evidence', function (Blueprint $table): void {
             $table->id();
             $table->string('evidenceable_type')->index();
             $table->unsignedBigInteger('evidenceable_id')->index();
@@ -22,7 +22,7 @@ return new class extends Migration
             $table->json('metadata')->nullable();
             $table->timestamps();
 
-            $table->index(['evidenceable_type', 'evidenceable_id', 'evidence_type'], 'quality_evidence_morph_type_idx');
+            $table->index(['evidenceable_type', 'evidenceable_id', 'evidence_type'], 'operation_quality_evidence_morph_type_idx');
         });
     }
 
@@ -31,6 +31,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('quality_evidence');
+        Schema::dropIfExists('operation_quality_evidence');
     }
 };

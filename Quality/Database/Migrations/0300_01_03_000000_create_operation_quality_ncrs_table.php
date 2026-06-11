@@ -14,7 +14,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('quality_ncrs', function (Blueprint $table): void {
+        Schema::create('operation_quality_ncrs', function (Blueprint $table): void {
             $table->id();
             $table->foreignId('company_id')->index()->constrained('companies');
             $table->string('ncr_no')->unique();
@@ -59,6 +59,6 @@ return new class extends Migration
     public function down(): void
     {
         $this->unregisterSeeder(NcrWorkflowSeeder::class);
-        Schema::dropIfExists('quality_ncrs');
+        Schema::dropIfExists('operation_quality_ncrs');
     }
 };

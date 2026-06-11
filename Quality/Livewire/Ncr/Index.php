@@ -37,13 +37,13 @@ class Index extends StatusFilteredSearchableIndex
     protected function sortableColumns(): array
     {
         return [
-            'ncr_no' => 'quality_ncrs.ncr_no',
-            'title' => 'quality_ncrs.title',
-            'ncr_kind' => 'quality_ncrs.ncr_kind',
-            'severity' => 'quality_ncrs.severity',
-            'status' => 'quality_ncrs.status',
-            'reported_by_name' => 'quality_ncrs.reported_by_name',
-            'created_at' => 'quality_ncrs.created_at',
+            'ncr_no' => 'operation_quality_ncrs.ncr_no',
+            'title' => 'operation_quality_ncrs.title',
+            'ncr_kind' => 'operation_quality_ncrs.ncr_kind',
+            'severity' => 'operation_quality_ncrs.severity',
+            'status' => 'operation_quality_ncrs.status',
+            'reported_by_name' => 'operation_quality_ncrs.reported_by_name',
+            'created_at' => 'operation_quality_ncrs.created_at',
         ];
     }
 
@@ -63,9 +63,9 @@ class Index extends StatusFilteredSearchableIndex
     protected function applySearch(EloquentBuilder|QueryBuilder $query, string $search): void
     {
         $query->where(function (EloquentBuilder $builder) use ($search): void {
-            $builder->where('quality_ncrs.ncr_no', 'like', '%'.$search.'%')
-                ->orWhere('quality_ncrs.title', 'like', '%'.$search.'%')
-                ->orWhere('quality_ncrs.reported_by_name', 'like', '%'.$search.'%');
+            $builder->where('operation_quality_ncrs.ncr_no', 'like', '%'.$search.'%')
+                ->orWhere('operation_quality_ncrs.title', 'like', '%'.$search.'%')
+                ->orWhere('operation_quality_ncrs.reported_by_name', 'like', '%'.$search.'%');
         });
     }
 

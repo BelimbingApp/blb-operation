@@ -60,7 +60,7 @@ class Ncr extends QualityRecord
 {
     use HasFactory, HasWorkflowStatus;
 
-    protected $table = 'quality_ncrs';
+    protected $table = 'operation_quality_ncrs';
 
     protected $fillable = [
         'company_id',

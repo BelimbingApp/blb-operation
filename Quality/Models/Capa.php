@@ -63,7 +63,7 @@ class Capa extends QualityRecord
 {
     use HasFactory;
 
-    protected $table = 'quality_capas';
+    protected $table = 'operation_quality_capas';
 
     protected $fillable = [
         'ncr_id',

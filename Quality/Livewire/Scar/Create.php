@@ -62,7 +62,7 @@ class Create extends Component
     public function store(ScarService $scarService): void
     {
         $validated = $this->validate([
-            'ncr_id' => ['required', 'integer', 'exists:quality_ncrs,id'],
+            'ncr_id' => ['required', 'integer', 'exists:operation_quality_ncrs,id'],
             'supplier_name' => ['required', 'string', 'max:255'],
             'supplier_site' => ['nullable', 'string', 'max:255'],
             'supplier_contact_name' => ['nullable', 'string', 'max:255'],

@@ -14,9 +14,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('quality_scars', function (Blueprint $table): void {
+        Schema::create('operation_quality_scars', function (Blueprint $table): void {
             $table->id();
-            $table->foreignId('ncr_id')->index()->constrained('quality_ncrs')->cascadeOnDelete();
+            $table->foreignId('ncr_id')->index()->constrained('operation_quality_ncrs')->cascadeOnDelete();
             $table->string('scar_no')->unique();
             $table->string('status')->default('draft')->index();
             $table->string('supplier_name');
@@ -68,6 +68,6 @@ return new class extends Migration
     public function down(): void
     {
         $this->unregisterSeeder(ScarWorkflowSeeder::class);
-        Schema::dropIfExists('quality_scars');
+        Schema::dropIfExists('operation_quality_scars');
     }
 };

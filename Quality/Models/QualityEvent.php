@@ -39,7 +39,7 @@ class QualityEvent extends Model
      *
      * @var string
      */
-    protected $table = 'quality_events';
+    protected $table = 'operation_quality_events';
 
     /**
      * The attributes that are mass assignable.

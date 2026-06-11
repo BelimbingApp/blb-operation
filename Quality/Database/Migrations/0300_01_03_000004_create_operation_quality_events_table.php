@@ -10,11 +10,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('quality_events', function (Blueprint $table): void {
+        Schema::create('operation_quality_events', function (Blueprint $table): void {
             $table->id();
-            $table->foreignId('ncr_id')->nullable()->index()->constrained('quality_ncrs')->nullOnDelete();
-            $table->foreignId('capa_id')->nullable()->index()->constrained('quality_capas')->nullOnDelete();
-            $table->foreignId('scar_id')->nullable()->index()->constrained('quality_scars')->nullOnDelete();
+            $table->foreignId('ncr_id')->nullable()->index()->constrained('operation_quality_ncrs')->nullOnDelete();
+            $table->foreignId('capa_id')->nullable()->index()->constrained('operation_quality_capas')->nullOnDelete();
+            $table->foreignId('scar_id')->nullable()->index()->constrained('operation_quality_scars')->nullOnDelete();
             $table->string('event_type')->index(); // evidence_ingested, ai_artifact_accepted, knowledge_published
             $table->string('actor_type'); // user, system, ai
             $table->unsignedBigInteger('actor_id')->nullable();
@@ -29,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('quality_events');
+        Schema::dropIfExists('operation_quality_events');
     }
 };

@@ -10,9 +10,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('quality_action_items', function (Blueprint $table): void {
+        Schema::create('operation_quality_action_items', function (Blueprint $table): void {
             $table->id();
-            $table->foreignId('ncr_id')->index()->constrained('quality_ncrs')->cascadeOnDelete();
+            $table->foreignId('ncr_id')->index()->constrained('operation_quality_ncrs')->cascadeOnDelete();
             $table->string('actionable_type')->nullable();
             $table->unsignedBigInteger('actionable_id')->nullable();
             $table->string('title');
@@ -34,6 +34,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('quality_action_items');
+        Schema::dropIfExists('operation_quality_action_items');
     }
 };

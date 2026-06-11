@@ -90,8 +90,8 @@ class ScarService
                 });
             } catch (QueryException $exception) {
                 if ($attempt < self::NUMBERING_RETRY_LIMIT && $this->causedByDuplicateNumber($exception, [
-                    'quality_scars.scar_no',
-                    'quality_scars_scar_no_unique',
+                    'operation_quality_scars.scar_no',
+                    'operation_quality_scars_scar_no_unique',
                 ])) {
                     continue;
                 }

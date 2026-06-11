@@ -69,7 +69,7 @@ class Scar extends QualityRecord
 {
     use HasFactory, HasWorkflowStatus;
 
-    protected $table = 'quality_scars';
+    protected $table = 'operation_quality_scars';
 
     protected $fillable = [
         'ncr_id',

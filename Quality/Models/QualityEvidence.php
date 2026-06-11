@@ -36,7 +36,7 @@ class QualityEvidence extends Model
      *
      * @var string
      */
-    protected $table = 'quality_evidence';
+    protected $table = 'operation_quality_evidence';
 
     /**
      * The attributes that are mass assignable.

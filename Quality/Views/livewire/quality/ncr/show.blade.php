@@ -205,43 +205,174 @@
 
                 {{-- Transition actions --}}
                 @if($availableTransitions->isNotEmpty())
+                    @php
+                        $capa = $ncr->capa;
+                        $triageSummaryDisplay = filled($triageSummary) ? $triageSummary : $capa?->triage_summary;
+                        $triageSeverityDisplay = filled($triageSeverity) ? $triageSeverity : $ncr->severity;
+                        $triageClassificationDisplay = filled($triageClassification) ? $triageClassification : $ncr->classification;
+                        $assignDepartmentDisplay = filled($assignDepartment) ? $assignDepartment : ($ncr->current_owner_department ?? $capa?->assigned_department);
+                        $containmentActionDisplay = filled($containmentAction) ? $containmentAction : $capa?->containment_action;
+                        $rootCauseOccurredDisplay = filled($rootCauseOccurred) ? $rootCauseOccurred : $capa?->root_cause_occurred;
+                        $rootCauseLeakageDisplay = filled($rootCauseLeakage) ? $rootCauseLeakage : $capa?->root_cause_leakage;
+                        $correctiveActionOccurredDisplay = filled($correctiveActionOccurred) ? $correctiveActionOccurred : $capa?->corrective_action_occurred;
+                        $correctiveActionLeakageDisplay = filled($correctiveActionLeakage) ? $correctiveActionLeakage : $capa?->corrective_action_leakage;
+                        $reviewCommentDisplay = filled($reviewComment) ? $reviewComment : $capa?->quality_review_comment;
+                        $reworkReasonDisplay = filled($reworkReason) ? $reworkReason : $capa?->rework_reason;
+                    @endphp
                     <x-ui.card>
                         <h2 class="text-base font-medium tracking-tight text-ink mb-3">{{ __('Actions') }}</h2>
 
                         <div class="space-y-4">
                             {{-- Context-specific fields based on available transitions --}}
                             @if($availableTransitions->contains('to_code', 'under_triage'))
-                                <x-ui.textarea id="triage-summary" wire:model="triageSummary" label="{{ __('Triage Summary') }}" rows="2" placeholder="{{ __('Assessment findings...') }}" />
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    <x-ui.select id="triage-severity" wire:model="triageSeverity" label="{{ __('Severity') }}">
-                                        <option value="">{{ __('Keep current') }}</option>
-                                        @foreach(config('quality.severity_levels') as $value => $label)
-                                            <option value="{{ $value }}">{{ __($label) }}</option>
-                                        @endforeach
-                                    </x-ui.select>
-                                    <x-ui.input id="triage-classification" wire:model="triageClassification" label="{{ __('Classification') }}" type="text" placeholder="{{ __('Update classification...') }}" />
+                                <div x-data="{ editing: false }" class="rounded-md border border-border-default bg-surface-subtle/30 p-3">
+                                    <div x-show="!editing" class="space-y-3">
+                                        <div class="flex items-start justify-between gap-3">
+                                            <h3 class="text-sm font-medium text-ink">{{ __('Triage') }}</h3>
+                                            <x-ui.button variant="ghost" size="sm" @click="editing = true">
+                                                <x-icon name="heroicon-o-pencil-square" class="w-4 h-4" />
+                                                {{ __('Edit') }}
+                                            </x-ui.button>
+                                        </div>
+                                        <dl class="grid gap-3 sm:grid-cols-3 text-sm">
+                                            <div class="sm:col-span-3">
+                                                <dt class="text-[11px] font-semibold text-muted uppercase tracking-wider">{{ __('Summary') }}</dt>
+                                                <dd class="mt-1 text-ink whitespace-pre-wrap">{{ $triageSummaryDisplay ?: '—' }}</dd>
+                                            </div>
+                                            <div>
+                                                <dt class="text-[11px] font-semibold text-muted uppercase tracking-wider">{{ __('Severity') }}</dt>
+                                                <dd class="mt-1">
+                                                    @if($triageSeverityDisplay)
+                                                        <x-ui.badge :variant="$this->severityVariant($triageSeverityDisplay)">{{ ucfirst($triageSeverityDisplay) }}</x-ui.badge>
+                                                    @else
+                                                        <span class="text-muted">—</span>
+                                                    @endif
+                                                </dd>
+                                            </div>
+                                            <div class="sm:col-span-2">
+                                                <dt class="text-[11px] font-semibold text-muted uppercase tracking-wider">{{ __('Classification') }}</dt>
+                                                <dd class="mt-1 text-ink">{{ $triageClassificationDisplay ?: '—' }}</dd>
+                                            </div>
+                                        </dl>
+                                    </div>
+                                    <div x-show="editing" x-cloak class="space-y-3">
+                                        <x-ui.textarea id="triage-summary" wire:model="triageSummary" label="{{ __('Triage Summary') }}" rows="2" placeholder="{{ __('Assessment findings...') }}" />
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                            <x-ui.select id="triage-severity" wire:model="triageSeverity" label="{{ __('Severity') }}">
+                                                <option value="">{{ __('Keep current') }}</option>
+                                                @foreach(config('quality.severity_levels') as $value => $label)
+                                                    <option value="{{ $value }}">{{ __($label) }}</option>
+                                                @endforeach
+                                            </x-ui.select>
+                                            <x-ui.input id="triage-classification" wire:model="triageClassification" label="{{ __('Classification') }}" type="text" placeholder="{{ __('Update classification...') }}" />
+                                        </div>
+                                        <div class="flex justify-end">
+                                            <x-ui.button variant="ghost" size="sm" wire:click="$refresh" @click="editing = false">{{ __('Done') }}</x-ui.button>
+                                        </div>
+                                    </div>
                                 </div>
                             @endif
 
                             @if($availableTransitions->contains('to_code', 'assigned'))
-                                <x-ui.input id="assign-department" wire:model="assignDepartment" label="{{ __('Assign to Department') }}" type="text" placeholder="{{ __('Department name...') }}" />
+                                <div x-data="{ editing: false }" class="rounded-md border border-border-default bg-surface-subtle/30 p-3">
+                                    <div x-show="!editing" class="flex items-start justify-between gap-3">
+                                        <dl class="text-sm">
+                                            <dt class="text-[11px] font-semibold text-muted uppercase tracking-wider">{{ __('Assign to Department') }}</dt>
+                                            <dd class="mt-1 text-ink">{{ $assignDepartmentDisplay ?: '—' }}</dd>
+                                        </dl>
+                                        <x-ui.button variant="ghost" size="sm" @click="editing = true">
+                                            <x-icon name="heroicon-o-pencil-square" class="w-4 h-4" />
+                                            {{ __('Edit') }}
+                                        </x-ui.button>
+                                    </div>
+                                    <div x-show="editing" x-cloak class="space-y-3">
+                                        <x-ui.input id="assign-department" wire:model="assignDepartment" label="{{ __('Assign to Department') }}" type="text" placeholder="{{ __('Department name...') }}" />
+                                        <div class="flex justify-end">
+                                            <x-ui.button variant="ghost" size="sm" wire:click="$refresh" @click="editing = false">{{ __('Done') }}</x-ui.button>
+                                        </div>
+                                    </div>
+                                </div>
                             @endif
 
                             @if($availableTransitions->contains('to_code', 'under_review'))
-                                <x-ui.textarea id="containment-action" wire:model="containmentAction" label="{{ __('Containment Action') }}" rows="2" placeholder="{{ __('Immediate containment measures...') }}" />
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    <x-ui.textarea id="root-cause-occurred" wire:model="rootCauseOccurred" label="{{ __('Root Cause (Occurred)') }}" rows="2" />
-                                    <x-ui.textarea id="root-cause-leakage" wire:model="rootCauseLeakage" label="{{ __('Root Cause (Leakage)') }}" rows="2" />
-                                </div>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    <x-ui.textarea id="corrective-action-occurred" wire:model="correctiveActionOccurred" label="{{ __('Corrective Action (Occurred)') }}" rows="2" />
-                                    <x-ui.textarea id="corrective-action-leakage" wire:model="correctiveActionLeakage" label="{{ __('Corrective Action (Leakage)') }}" rows="2" />
+                                <div x-data="{ editing: false }" class="rounded-md border border-border-default bg-surface-subtle/30 p-3">
+                                    <div x-show="!editing" class="space-y-3">
+                                        <div class="flex items-start justify-between gap-3">
+                                            <h3 class="text-sm font-medium text-ink">{{ __('CAPA Response') }}</h3>
+                                            <x-ui.button variant="ghost" size="sm" @click="editing = true">
+                                                <x-icon name="heroicon-o-pencil-square" class="w-4 h-4" />
+                                                {{ __('Edit') }}
+                                            </x-ui.button>
+                                        </div>
+                                        <dl class="grid gap-3 sm:grid-cols-2 text-sm">
+                                            <div class="sm:col-span-2">
+                                                <dt class="text-[11px] font-semibold text-muted uppercase tracking-wider">{{ __('Containment Action') }}</dt>
+                                                <dd class="mt-1 text-ink whitespace-pre-wrap">{{ $containmentActionDisplay ?: '—' }}</dd>
+                                            </div>
+                                            <div>
+                                                <dt class="text-[11px] font-semibold text-muted uppercase tracking-wider">{{ __('Root Cause (Occurred)') }}</dt>
+                                                <dd class="mt-1 text-ink whitespace-pre-wrap">{{ $rootCauseOccurredDisplay ?: '—' }}</dd>
+                                            </div>
+                                            <div>
+                                                <dt class="text-[11px] font-semibold text-muted uppercase tracking-wider">{{ __('Root Cause (Leakage)') }}</dt>
+                                                <dd class="mt-1 text-ink whitespace-pre-wrap">{{ $rootCauseLeakageDisplay ?: '—' }}</dd>
+                                            </div>
+                                            <div>
+                                                <dt class="text-[11px] font-semibold text-muted uppercase tracking-wider">{{ __('Corrective Action (Occurred)') }}</dt>
+                                                <dd class="mt-1 text-ink whitespace-pre-wrap">{{ $correctiveActionOccurredDisplay ?: '—' }}</dd>
+                                            </div>
+                                            <div>
+                                                <dt class="text-[11px] font-semibold text-muted uppercase tracking-wider">{{ __('Corrective Action (Leakage)') }}</dt>
+                                                <dd class="mt-1 text-ink whitespace-pre-wrap">{{ $correctiveActionLeakageDisplay ?: '—' }}</dd>
+                                            </div>
+                                        </dl>
+                                    </div>
+                                    <div x-show="editing" x-cloak class="space-y-3">
+                                        <x-ui.textarea id="containment-action" wire:model="containmentAction" label="{{ __('Containment Action') }}" rows="2" placeholder="{{ __('Immediate containment measures...') }}" />
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                            <x-ui.textarea id="root-cause-occurred" wire:model="rootCauseOccurred" label="{{ __('Root Cause (Occurred)') }}" rows="2" />
+                                            <x-ui.textarea id="root-cause-leakage" wire:model="rootCauseLeakage" label="{{ __('Root Cause (Leakage)') }}" rows="2" />
+                                        </div>
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                            <x-ui.textarea id="corrective-action-occurred" wire:model="correctiveActionOccurred" label="{{ __('Corrective Action (Occurred)') }}" rows="2" />
+                                            <x-ui.textarea id="corrective-action-leakage" wire:model="correctiveActionLeakage" label="{{ __('Corrective Action (Leakage)') }}" rows="2" />
+                                        </div>
+                                        <div class="flex justify-end">
+                                            <x-ui.button variant="ghost" size="sm" wire:click="$refresh" @click="editing = false">{{ __('Done') }}</x-ui.button>
+                                        </div>
+                                    </div>
                                 </div>
                             @endif
 
                             @if($availableTransitions->contains(fn ($t) => in_array($t->to_code, ['verified', 'in_progress']) && $ncr->status === 'under_review'))
-                                <x-ui.textarea id="review-comment" wire:model="reviewComment" label="{{ __('Review Comment') }}" rows="2" placeholder="{{ __('Quality review notes...') }}" />
-                                <x-ui.input id="rework-reason" wire:model="reworkReason" label="{{ __('Rework Reason (if requesting rework)') }}" type="text" placeholder="{{ __('Reason for rework...') }}" />
+                                <div x-data="{ editing: false }" class="rounded-md border border-border-default bg-surface-subtle/30 p-3">
+                                    <div x-show="!editing" class="space-y-3">
+                                        <div class="flex items-start justify-between gap-3">
+                                            <h3 class="text-sm font-medium text-ink">{{ __('Quality Review') }}</h3>
+                                            <x-ui.button variant="ghost" size="sm" @click="editing = true">
+                                                <x-icon name="heroicon-o-pencil-square" class="w-4 h-4" />
+                                                {{ __('Edit') }}
+                                            </x-ui.button>
+                                        </div>
+                                        <dl class="grid gap-3 sm:grid-cols-2 text-sm">
+                                            <div>
+                                                <dt class="text-[11px] font-semibold text-muted uppercase tracking-wider">{{ __('Review Comment') }}</dt>
+                                                <dd class="mt-1 text-ink whitespace-pre-wrap">{{ $reviewCommentDisplay ?: '—' }}</dd>
+                                            </div>
+                                            <div>
+                                                <dt class="text-[11px] font-semibold text-muted uppercase tracking-wider">{{ __('Rework Reason') }}</dt>
+                                                <dd class="mt-1 text-ink">{{ $reworkReasonDisplay ?: '—' }}</dd>
+                                            </div>
+                                        </dl>
+                                    </div>
+                                    <div x-show="editing" x-cloak class="space-y-3">
+                                        <x-ui.textarea id="review-comment" wire:model="reviewComment" label="{{ __('Review Comment') }}" rows="2" placeholder="{{ __('Quality review notes...') }}" />
+                                        <x-ui.input id="rework-reason" wire:model="reworkReason" label="{{ __('Rework Reason (if requesting rework)') }}" type="text" placeholder="{{ __('Reason for rework...') }}" />
+                                        <div class="flex justify-end">
+                                            <x-ui.button variant="ghost" size="sm" wire:click="$refresh" @click="editing = false">{{ __('Done') }}</x-ui.button>
+                                        </div>
+                                    </div>
+                                </div>
                             @endif
 
                             <x-ui.textarea

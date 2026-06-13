@@ -156,17 +156,65 @@
 
                 {{-- Transition actions --}}
                 @if($availableTransitions->isNotEmpty())
+                    @php
+                        $containmentResponseDisplay = filled($containmentResponse) ? $containmentResponse : $scar->containment_response;
+                        $rootCauseResponseDisplay = filled($rootCauseResponse) ? $rootCauseResponse : $scar->root_cause_response;
+                        $correctiveActionResponseDisplay = filled($correctiveActionResponse) ? $correctiveActionResponse : $scar->corrective_action_response;
+                    @endphp
                     <x-ui.card>
                         <h2 class="text-base font-medium tracking-tight text-ink mb-3">{{ __('Actions') }}</h2>
 
                         <div class="space-y-4">
                             @if($availableTransitions->contains('to_code', 'containment_submitted'))
-                                <x-ui.textarea id="containment-response" wire:model="containmentResponse" label="{{ __('Containment Response') }}" rows="2" placeholder="{{ __('Describe containment measures...') }}" />
+                                <div x-data="{ editing: false }" class="rounded-md border border-border-default bg-surface-subtle/30 p-3">
+                                    <div x-show="!editing" class="flex items-start justify-between gap-3">
+                                        <dl class="text-sm">
+                                            <dt class="text-[11px] font-semibold text-muted uppercase tracking-wider">{{ __('Containment Response') }}</dt>
+                                            <dd class="mt-1 text-ink whitespace-pre-wrap">{{ $containmentResponseDisplay ?: '—' }}</dd>
+                                        </dl>
+                                        <x-ui.button variant="ghost" size="sm" @click="editing = true">
+                                            <x-icon name="heroicon-o-pencil-square" class="w-4 h-4" />
+                                            {{ __('Edit') }}
+                                        </x-ui.button>
+                                    </div>
+                                    <div x-show="editing" x-cloak class="space-y-3">
+                                        <x-ui.textarea id="containment-response" wire:model="containmentResponse" label="{{ __('Containment Response') }}" rows="2" placeholder="{{ __('Describe containment measures...') }}" />
+                                        <div class="flex justify-end">
+                                            <x-ui.button variant="ghost" size="sm" wire:click="$refresh" @click="editing = false">{{ __('Done') }}</x-ui.button>
+                                        </div>
+                                    </div>
+                                </div>
                             @endif
 
                             @if($availableTransitions->contains(fn ($t) => in_array($t->to_code, ['response_submitted', 'under_investigation'])))
-                                <x-ui.textarea id="root-cause-response" wire:model="rootCauseResponse" label="{{ __('Root Cause') }}" rows="2" placeholder="{{ __('Root cause analysis...') }}" />
-                                <x-ui.textarea id="corrective-action-response" wire:model="correctiveActionResponse" label="{{ __('Corrective Action') }}" rows="2" placeholder="{{ __('Corrective action plan...') }}" />
+                                <div x-data="{ editing: false }" class="rounded-md border border-border-default bg-surface-subtle/30 p-3">
+                                    <div x-show="!editing" class="space-y-3">
+                                        <div class="flex items-start justify-between gap-3">
+                                            <h3 class="text-sm font-medium text-ink">{{ __('Supplier Response') }}</h3>
+                                            <x-ui.button variant="ghost" size="sm" @click="editing = true">
+                                                <x-icon name="heroicon-o-pencil-square" class="w-4 h-4" />
+                                                {{ __('Edit') }}
+                                            </x-ui.button>
+                                        </div>
+                                        <dl class="grid gap-3 sm:grid-cols-2 text-sm">
+                                            <div>
+                                                <dt class="text-[11px] font-semibold text-muted uppercase tracking-wider">{{ __('Root Cause') }}</dt>
+                                                <dd class="mt-1 text-ink whitespace-pre-wrap">{{ $rootCauseResponseDisplay ?: '—' }}</dd>
+                                            </div>
+                                            <div>
+                                                <dt class="text-[11px] font-semibold text-muted uppercase tracking-wider">{{ __('Corrective Action') }}</dt>
+                                                <dd class="mt-1 text-ink whitespace-pre-wrap">{{ $correctiveActionResponseDisplay ?: '—' }}</dd>
+                                            </div>
+                                        </dl>
+                                    </div>
+                                    <div x-show="editing" x-cloak class="space-y-3">
+                                        <x-ui.textarea id="root-cause-response" wire:model="rootCauseResponse" label="{{ __('Root Cause') }}" rows="2" placeholder="{{ __('Root cause analysis...') }}" />
+                                        <x-ui.textarea id="corrective-action-response" wire:model="correctiveActionResponse" label="{{ __('Corrective Action') }}" rows="2" placeholder="{{ __('Corrective action plan...') }}" />
+                                        <div class="flex justify-end">
+                                            <x-ui.button variant="ghost" size="sm" wire:click="$refresh" @click="editing = false">{{ __('Done') }}</x-ui.button>
+                                        </div>
+                                    </div>
+                                </div>
                             @endif
 
                             <x-ui.textarea

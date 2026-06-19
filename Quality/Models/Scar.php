@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Modules\Operation\Quality\Models;
 
 use App\Base\Workflow\Concerns\HasWorkflowStatus;
@@ -147,6 +148,48 @@ class Scar extends QualityRecord
     protected static function newFactory(): ScarFactory
     {
         return new ScarFactory;
+    }
+
+    /**
+     * @return array{name: string, id: int}|null
+     */
+    public function getAuditSubject(): ?array
+    {
+        return $this->id !== null ? ['name' => 'scar', 'id' => (int) $this->id] : null;
+    }
+
+    /**
+     * @param  array<string, mixed>  $oldValues
+     * @param  array<string, mixed>  $newValues
+     * @return list<array<string, mixed>>
+     */
+    public function getAuditSubjectEntries(string $event, array $oldValues = [], array $newValues = []): array
+    {
+        $ncrIds = [$this->ncr_id];
+
+        if ($event === 'updated') {
+            $ncrIds[] = $this->getOriginal('ncr_id');
+        }
+
+        $entries = [];
+
+        foreach ($ncrIds as $ncrId) {
+            if ($ncrId === null || $ncrId === '') {
+                continue;
+            }
+
+            $id = (int) $ncrId;
+
+            $entries['ncr#'.$id] = [
+                'subject_name' => 'ncr',
+                'subject_id' => $id,
+                'event' => $event,
+                'old_values' => $oldValues,
+                'new_values' => $newValues,
+            ];
+        }
+
+        return array_values($entries);
     }
 
     /**

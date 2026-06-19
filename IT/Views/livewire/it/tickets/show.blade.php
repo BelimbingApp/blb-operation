@@ -1,5 +1,8 @@
 <?php
-/** @var \App\Modules\Operation\IT\Livewire\Tickets\Show $this */
+
+use App\Modules\Operation\IT\Livewire\Tickets\Show;
+
+/** @var Show $this */
 ?>
 
 <div>
@@ -8,6 +11,13 @@
     <div class="space-y-section-gap">
         <x-ui.page-header :title="$ticket->title" :subtitle="__('Ticket #:id', ['id' => $ticket->id])">
             <x-slot name="actions">
+                <x-ui.record-history
+                    :title="__('History for ticket #:id', ['id' => $ticket->id])"
+                    :subjects="[['name' => 'ticket', 'id' => $ticket->id]]"
+                    :auditable-type="$ticket->getMorphClass()"
+                    :auditable-id="$ticket->id"
+                    source-capability="operations.it.ticket.view"
+                />
                 <x-ui.button variant="ghost" as="a" href="{{ route('it.tickets.index') }}" wire:navigate>
                     <x-icon name="heroicon-o-arrow-left" class="w-4 h-4" />
                     {{ __('Back') }}

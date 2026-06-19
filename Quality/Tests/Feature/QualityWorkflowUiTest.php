@@ -36,6 +36,42 @@ test('scar create redirects to the ncr list when no ncr is selected', function (
     expect(session('error'))->toBe(__('Select an NCR before creating a SCAR.'));
 });
 
+test('quality detail pages render record history triggers', function (): void {
+    $actor = createAdminUser();
+    $ncr = Ncr::factory()->create([
+        'company_id' => $actor->company_id,
+        'ncr_no' => 'NCR-HISTORY-001',
+        'title' => 'History-enabled NCR',
+    ]);
+    $scar = Scar::factory()->create([
+        'ncr_id' => $ncr->id,
+        'scar_no' => 'SCAR-HISTORY-001',
+        'supplier_name' => 'History Supplier',
+    ]);
+
+    $this->actingAs($actor);
+
+    $this->get(route('quality.ncr.show', $ncr))
+        ->assertOk()
+        ->assertSee('History')
+        ->assertSeeHtml('wire:click="open"');
+
+    $this->get(route('quality.scar.show', $scar))
+        ->assertOk()
+        ->assertSee('History')
+        ->assertSeeHtml('wire:click="open"');
+
+    expect($ncr->getAuditSubject())->toBe(['name' => 'ncr', 'id' => $ncr->id])
+        ->and($scar->getAuditSubject())->toBe(['name' => 'scar', 'id' => $scar->id])
+        ->and($scar->getAuditSubjectEntries('updated'))->toContain([
+            'subject_name' => 'ncr',
+            'subject_id' => $ncr->id,
+            'event' => 'updated',
+            'old_values' => [],
+            'new_values' => [],
+        ]);
+});
+
 test('ncr show starts investigation without skipping straight to under review', function (): void {
     $actor = createAdminUser();
     $this->actingAs($actor);

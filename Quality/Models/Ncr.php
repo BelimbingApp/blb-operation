@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Modules\Operation\Quality\Models;
 
 use App\Base\Workflow\Concerns\HasWorkflowStatus;
@@ -119,6 +120,14 @@ class Ncr extends QualityRecord
     protected static function newFactory(): NcrFactory
     {
         return new NcrFactory;
+    }
+
+    /**
+     * @return array{name: string, id: int}|null
+     */
+    public function getAuditSubject(): ?array
+    {
+        return $this->id !== null ? ['name' => 'ncr', 'id' => (int) $this->id] : null;
     }
 
     /**

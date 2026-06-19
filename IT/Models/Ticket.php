@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Modules\Operation\IT\Models;
 
 use App\Base\Workflow\Concerns\HasWorkflowStatus;
@@ -88,6 +89,14 @@ class Ticket extends Model
     protected static function newFactory(): TicketFactory
     {
         return new TicketFactory;
+    }
+
+    /**
+     * @return array{name: string, id: int}|null
+     */
+    public function getAuditSubject(): ?array
+    {
+        return $this->id !== null ? ['name' => 'ticket', 'id' => (int) $this->id] : null;
     }
 
     /**

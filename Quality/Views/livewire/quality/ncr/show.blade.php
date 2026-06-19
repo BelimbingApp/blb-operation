@@ -1,5 +1,8 @@
 <?php
-/** @var \App\Modules\Operation\Quality\Livewire\Ncr\Show $this */
+
+use App\Modules\Operation\Quality\Livewire\Ncr\Show;
+
+/** @var Show $this */
 ?>
 
 <div>
@@ -8,6 +11,13 @@
     <div class="space-y-section-gap">
         <x-ui.page-header :title="$ncr->title" :subtitle="$ncr->ncr_no">
             <x-slot name="actions">
+                <x-ui.record-history
+                    :title="__('History for :no', ['no' => $ncr->ncr_no])"
+                    :subjects="[['name' => 'ncr', 'id' => $ncr->id]]"
+                    :auditable-type="$ncr->getMorphClass()"
+                    :auditable-id="$ncr->id"
+                    source-capability="operations.quality.ncr.view"
+                />
                 <x-ui.button variant="ghost" as="a" href="{{ route('quality.ncr.index') }}" wire:navigate>
                     <x-icon name="heroicon-o-arrow-left" class="w-4 h-4" />
                     {{ __('Back') }}

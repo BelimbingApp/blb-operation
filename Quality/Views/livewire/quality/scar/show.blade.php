@@ -1,5 +1,8 @@
 <?php
-/** @var \App\Modules\Operation\Quality\Livewire\Scar\Show $this */
+
+use App\Modules\Operation\Quality\Livewire\Scar\Show;
+
+/** @var Show $this */
 ?>
 
 <div>
@@ -8,6 +11,13 @@
     <div class="space-y-section-gap">
         <x-ui.page-header :title="$scar->scar_no" :subtitle="$scar->supplier_name">
             <x-slot name="actions">
+                <x-ui.record-history
+                    :title="__('History for :no', ['no' => $scar->scar_no])"
+                    :subjects="[['name' => 'scar', 'id' => $scar->id]]"
+                    :auditable-type="$scar->getMorphClass()"
+                    :auditable-id="$scar->id"
+                    source-capability="operations.quality.scar.view"
+                />
                 <x-ui.button variant="ghost" as="a" href="{{ route('quality.ncr.show', $scar->ncr) }}" wire:navigate>
                     <x-icon name="heroicon-o-arrow-left" class="w-4 h-4" />
                     {{ __('NCR :no', ['no' => $scar->ncr?->ncr_no]) }}

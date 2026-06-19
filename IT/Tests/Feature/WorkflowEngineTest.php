@@ -112,6 +112,24 @@ beforeEach(function (): void {
     seedTestWorkflow();
 });
 
+test('ticket detail page renders the record history trigger', function (): void {
+    $actor = createAdminUser();
+    $reporter = Employee::factory()->create(['company_id' => $actor->company_id]);
+    $ticket = Ticket::factory()->create([
+        'company_id' => $actor->company_id,
+        'reporter_id' => $reporter->id,
+        'title' => 'History-enabled ticket',
+    ]);
+
+    $this->actingAs($actor)
+        ->get(route('it.tickets.show', $ticket))
+        ->assertOk()
+        ->assertSee('History')
+        ->assertSeeHtml('wire:click="open"');
+
+    expect($ticket->getAuditSubject())->toBe(['name' => 'ticket', 'id' => $ticket->id]);
+});
+
 // -- StatusManager Tests --
 
 test('status manager loads all active statuses for a flow', function (): void {

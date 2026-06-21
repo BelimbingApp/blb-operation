@@ -3,6 +3,7 @@
 namespace App\Modules\Operation\Quality\Livewire\Scar;
 
 use App\Base\Authz\DTO\Actor;
+use App\Base\Foundation\Livewire\Concerns\InteractsWithNotifications;
 use App\Base\Workflow\DTO\TransitionContext;
 use App\Base\Workflow\DTO\TransitionResult;
 use App\Modules\Operation\Quality\Models\Scar;
@@ -10,13 +11,13 @@ use App\Modules\Operation\Quality\Services\EvidenceService;
 use App\Modules\Operation\Quality\Services\ScarService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Session;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
 class Show extends Component
 {
+    use InteractsWithNotifications;
     use WithFileUploads;
 
     public Scar $scar;
@@ -55,7 +56,7 @@ class Show extends Component
 
         $this->evidenceFile = null;
         $this->scar->load('evidence');
-        Session::flash('success', __('Evidence uploaded successfully.'));
+        $this->notify(__('Evidence uploaded successfully.'));
     }
 
     public function deleteEvidence(int $evidenceId, EvidenceService $evidenceService): void
@@ -65,7 +66,7 @@ class Show extends Component
         if ($evidence) {
             $evidenceService->archive($evidence);
             $this->scar->load('evidence');
-            Session::flash('success', __('Evidence removed.'));
+            $this->notify(__('Evidence removed.'));
         }
     }
 
@@ -102,7 +103,7 @@ class Show extends Component
         };
 
         if ($result === null) {
-            Session::flash('error', __('Unknown transition target.'));
+            $this->notifyError(__('Unknown transition target.'));
 
             return;
         }
@@ -111,9 +112,9 @@ class Show extends Component
             $this->resetTransitionFields();
             $this->scar->refresh();
             $this->scar->load('ncr', 'issueOwner', 'verifiedByUser', 'closedByUser', 'evidence');
-            Session::flash('success', __('SCAR transitioned successfully.'));
+            $this->notify(__('SCAR transitioned successfully.'));
         } else {
-            Session::flash('error', $result->reason ?? __('Transition failed.'));
+            $this->notifyError($result->reason ?? __('Transition failed.'));
         }
     }
 

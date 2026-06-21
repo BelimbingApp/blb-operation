@@ -3,15 +3,17 @@
 namespace App\Modules\Operation\IT\Livewire\Tickets;
 
 use App\Base\Authz\DTO\Actor;
+use App\Base\Foundation\Livewire\Concerns\InteractsWithNotifications;
 use App\Modules\Operation\IT\Models\Ticket;
 use App\Modules\Operation\IT\Services\TicketService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Session;
 use Livewire\Component;
 
 class Show extends Component
 {
+    use InteractsWithNotifications;
+
     public Ticket $ticket;
 
     public string $transitionComment = '';
@@ -39,9 +41,9 @@ class Show extends Component
         if ($result->success) {
             $this->transitionComment = '';
             $this->ticket->refresh();
-            Session::flash('success', __('Ticket transitioned successfully.'));
+            $this->notify(__('Ticket transitioned successfully.'));
         } else {
-            Session::flash('error', $result->reason ?? __('Transition failed.'));
+            $this->notifyError($result->reason ?? __('Transition failed.'));
         }
     }
 

@@ -3,18 +3,19 @@
 namespace App\Modules\Operation\Quality\Livewire\Ncr;
 
 use App\Base\Authz\DTO\Actor;
+use App\Base\Foundation\Livewire\Concerns\InteractsWithNotifications;
 use App\Modules\Operation\Quality\Models\Ncr;
 use App\Modules\Operation\Quality\Services\EvidenceService;
 use App\Modules\Operation\Quality\Services\NcrService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Session;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
 class Show extends Component
 {
+    use InteractsWithNotifications;
     use WithFileUploads;
 
     public Ncr $ncr;
@@ -75,7 +76,7 @@ class Show extends Component
 
         $this->evidenceFile = null;
         $this->ncr->load('evidence');
-        Session::flash('success', __('Evidence uploaded successfully.'));
+        $this->notify(__('Evidence uploaded successfully.'));
     }
 
     public function deleteEvidence(int $evidenceId, EvidenceService $evidenceService): void
@@ -85,7 +86,7 @@ class Show extends Component
         if ($evidence) {
             $evidenceService->archive($evidence);
             $this->ncr->load('evidence');
-            Session::flash('success', __('Evidence removed.'));
+            $this->notify(__('Evidence removed.'));
         }
     }
 
@@ -137,7 +138,7 @@ class Show extends Component
         };
 
         if ($result === null) {
-            Session::flash('error', __('Unknown transition target.'));
+            $this->notifyError(__('Unknown transition target.'));
 
             return;
         }
@@ -146,9 +147,9 @@ class Show extends Component
             $this->resetTransitionFields();
             $this->ncr->refresh();
             $this->ncr->load('createdByUser', 'currentOwner', 'capa', 'scars', 'evidence');
-            Session::flash('success', __('NCR transitioned successfully.'));
+            $this->notify(__('NCR transitioned successfully.'));
         } else {
-            Session::flash('error', $result->reason ?? __('Transition failed.'));
+            $this->notifyError($result->reason ?? __('Transition failed.'));
         }
     }
 

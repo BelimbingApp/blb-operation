@@ -3,6 +3,7 @@
 namespace App\Modules\Operation\IT\Models;
 
 use App\Base\Workflow\Concerns\HasWorkflowStatus;
+use App\Base\Workflow\Contracts\PresentsWorkflowNotifications;
 use App\Modules\Core\Company\Models\Company;
 use App\Modules\Core\Employee\Models\Employee;
 use App\Modules\Operation\IT\Database\Factories\TicketFactory;
@@ -32,9 +33,14 @@ use Illuminate\Support\Carbon;
  * @property-read Employee $reporter
  * @property-read Employee|null $assignee
  */
-class Ticket extends Model
+class Ticket extends Model implements PresentsWorkflowNotifications
 {
     use HasFactory, HasWorkflowStatus;
+
+    /**
+     * The workflow flow identifier for IT tickets.
+     */
+    public const string FLOW = 'it_ticket';
 
     /**
      * The table associated with the model.
@@ -80,7 +86,23 @@ class Ticket extends Model
      */
     public function flow(): string
     {
-        return 'it_ticket';
+        return self::FLOW;
+    }
+
+    /**
+     * Short human title for notification lists.
+     */
+    public function workflowNotificationTitle(): string
+    {
+        return sprintf('#%d %s', $this->id, $this->title);
+    }
+
+    /**
+     * Deep link to the ticket page.
+     */
+    public function workflowNotificationUrl(): ?string
+    {
+        return route('it.tickets.show', $this);
     }
 
     /**

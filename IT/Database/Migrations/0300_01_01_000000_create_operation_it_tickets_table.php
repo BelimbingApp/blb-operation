@@ -1,4 +1,5 @@
 <?php
+
 use App\Base\Database\Concerns\RegistersSeeders;
 use App\Modules\Operation\IT\Database\Seeders\TicketWorkflowSeeder;
 use Illuminate\Database\Migrations\Migration;

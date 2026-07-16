@@ -1,4 +1,6 @@
 <?php
+
+use App\Modules\Operation\IT\Livewire\Tickets\Board;
 use App\Modules\Operation\IT\Livewire\Tickets\Create;
 use App\Modules\Operation\IT\Livewire\Tickets\Index;
 use App\Modules\Operation\IT\Livewire\Tickets\Show;
@@ -8,6 +10,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('it/tickets', Index::class)
         ->middleware('authz:operations.it.ticket.list')
         ->name('it.tickets.index');
+
+    Route::get('it/tickets/board', Board::class)
+        ->middleware('authz:operations.it.ticket.list')
+        ->name('it.tickets.board');
 
     Route::get('it/tickets/create', Create::class)
         ->middleware('authz:operations.it.ticket.create')

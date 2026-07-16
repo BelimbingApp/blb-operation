@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Modules\Operation\IT\Services;
 
 use App\Base\Authz\DTO\Actor;
@@ -6,7 +7,10 @@ use App\Base\Workflow\DTO\TransitionContext;
 use App\Base\Workflow\DTO\TransitionResult;
 use App\Base\Workflow\Models\StatusHistory;
 use App\Modules\Core\Employee\Models\Employee;
+use App\Modules\Core\User\Models\User;
 use App\Modules\Operation\IT\Models\Ticket;
+use App\Modules\Operation\IT\Notifications\TicketCommentPosted;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -71,7 +75,7 @@ class TicketService
         ?string $commentTag = null,
         ?array $metadata = null,
     ): StatusHistory {
-        return StatusHistory::query()->create([
+        $history = StatusHistory::query()->create([
             'flow' => 'it_ticket',
             'flow_id' => $ticket->id,
             'status' => $ticket->status,
@@ -81,6 +85,109 @@ class TicketService
             'metadata' => $metadata,
             'transitioned_at' => Carbon::now(),
         ]);
+
+        $this->notifyCommentStakeholders($ticket, $actor, $history);
+
+        return $history;
+    }
+
+    /**
+     * Assign (or reassign) a ticket to an employee.
+     *
+     * On an `open` ticket this drives the open → assigned transition so the
+     * workflow history and notifications fire; on an already-running ticket
+     * it swaps the assignee and records the handover as a timeline comment.
+     */
+    public function assign(Ticket $ticket, Actor $actor, Employee $assignee): TransitionResult
+    {
+        if ($ticket->assignee_id === $assignee->id) {
+            return TransitionResult::failure(__(':name already owns this ticket.', ['name' => $assignee->displayName()]));
+        }
+
+        $previousAssigneeId = $ticket->assignee_id;
+        $ticket->assignee_id = $assignee->id;
+        $ticket->save();
+
+        if ($ticket->status === 'open') {
+            $result = $this->transition(
+                $ticket,
+                $actor,
+                'assigned',
+                __('Assigned to :name', ['name' => $assignee->displayName()]),
+                'assignment',
+            );
+
+            if (! $result->success) {
+                $ticket->assignee_id = $previousAssigneeId;
+                $ticket->save();
+            }
+
+            return $result;
+        }
+
+        $history = $this->postComment(
+            $ticket,
+            $actor,
+            __('Reassigned to :name', ['name' => $assignee->displayName()]),
+            'assignment',
+        );
+
+        return TransitionResult::success($history);
+    }
+
+    /**
+     * Update the editable facts of a ticket.
+     *
+     * Changes are captured by the model audit trail; the workflow timeline
+     * stays reserved for status changes and conversation.
+     *
+     * @param  array{title?: string, description?: string|null, priority?: string, category?: string|null, location?: string|null}  $data
+     */
+    public function updateDetails(Ticket $ticket, array $data): Ticket
+    {
+        $ticket->fill(Arr::only($data, ['title', 'description', 'priority', 'category', 'location']));
+        $ticket->save();
+
+        return $ticket;
+    }
+
+    /**
+     * Notify ticket stakeholders (reporter, assignee) about a new comment,
+     * excluding whoever wrote it.
+     */
+    private function notifyCommentStakeholders(Ticket $ticket, Actor $actor, StatusHistory $history): void
+    {
+        $ticket->loadMissing('reporter.user', 'assignee.user');
+
+        $recipients = collect([$ticket->reporter?->user, $ticket->assignee?->user])
+            ->filter()
+            ->unique(fn (User $user): int => $user->id);
+
+        if ($actor->isUser()) {
+            $recipients = $recipients->reject(fn (User $user): bool => $user->id === $actor->id);
+        }
+
+        if ($recipients->isEmpty()) {
+            return;
+        }
+
+        $notification = new TicketCommentPosted($ticket, $history, $this->actorDisplayName($actor));
+
+        foreach ($recipients as $recipient) {
+            $recipient->notify($notification);
+        }
+    }
+
+    /**
+     * Human name for the acting principal: agents are employees, users are users.
+     */
+    private function actorDisplayName(Actor $actor): string
+    {
+        if ($actor->isAgent()) {
+            return Employee::query()->find($actor->id)?->displayName() ?? __('Agent');
+        }
+
+        return User::query()->find($actor->id)?->name ?? __('User #:id', ['id' => $actor->id]);
     }
 
     /**

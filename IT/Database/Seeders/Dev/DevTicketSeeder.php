@@ -85,9 +85,10 @@ class DevTicketSeeder extends DevSeeder
                 ['status' => 'active'],
             );
 
-            if ($employee->email === null) {
-                $employee->update(['email' => $definition['email']]);
-            }
+            $employee->update([
+                'email' => $definition['email'],
+                'status' => 'active',
+            ]);
 
             $user = User::query()->firstOrCreate(
                 ['email' => $definition['email']],
@@ -99,17 +100,24 @@ class DevTicketSeeder extends DevSeeder
                 ],
             );
 
-            // Heal stale dev data: a user from another company pointing at
-            // this employee hijacks the Employee→user relation and steals
-            // the crew member's notifications.
+            // Heal stale dev data deterministically: this email, employee,
+            // and company describe one crew identity.
             User::query()
                 ->where('employee_id', $employee->id)
-                ->where('company_id', '!=', $company->id)
+                ->where('id', '!=', $user->id)
                 ->update(['employee_id' => null]);
 
-            if ($user->employee_id === null) {
-                $user->update(['employee_id' => $employee->id]);
-            }
+            $user->update([
+                'company_id' => $company->id,
+                'employee_id' => $employee->id,
+                'name' => $definition['full_name'],
+                'email_verified_at' => $user->email_verified_at ?? Carbon::now(),
+            ]);
+            PrincipalRole::query()
+                ->where('principal_type', PrincipalType::USER->value)
+                ->where('principal_id', $user->id)
+                ->where('company_id', '!=', $company->id)
+                ->delete();
 
             $this->grantItAgentRole($user);
 
@@ -124,7 +132,7 @@ class DevTicketSeeder extends DevSeeder
             $this->actors['lara'] = new Actor(
                 type: PrincipalType::AGENT,
                 id: $lara->id,
-                companyId: $company->id,
+                companyId: (int) $lara->company_id,
                 actingForUserId: $this->actors['kiat']->id,
             );
         }
@@ -170,10 +178,25 @@ class DevTicketSeeder extends DevSeeder
             ->whereIn('flow_id', $ticketIds)
             ->delete();
 
-        // Notifications deep-link to tickets; drop the ones about to dangle.
-        DB::table('notifications')
+        // Notifications deep-link to tickets; drop only rows for this
+        // company's ticket ids, leaving other tenants untouched.
+        $ticketIdLookup = array_fill_keys($ticketIds->map(fn ($id): string => (string) $id)->all(), true);
+        $notificationIds = DB::table('notifications')
+            ->select('id', 'data')
             ->where('data', 'like', '%"flow":"'.self::FLOW.'"%')
-            ->delete();
+            ->get()
+            ->filter(function (object $notification) use ($ticketIdLookup): bool {
+                $data = json_decode((string) $notification->data, true);
+
+                return is_array($data)
+                    && ($data['model_type'] ?? null) === Ticket::class
+                    && isset($ticketIdLookup[(string) ($data['model_id'] ?? '')]);
+            })
+            ->pluck('id');
+
+        if ($notificationIds->isNotEmpty()) {
+            DB::table('notifications')->whereIn('id', $notificationIds)->delete();
+        }
 
         Ticket::query()->whereKey($ticketIds)->delete();
     }

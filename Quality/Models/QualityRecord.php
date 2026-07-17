@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Modules\Operation\Quality\Models;
 
 use App\Modules\Core\User\Models\User;

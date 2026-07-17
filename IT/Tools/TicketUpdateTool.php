@@ -146,8 +146,11 @@ class TicketUpdateTool extends AbstractTool
     {
         $ticketId = $this->requireInt($arguments, 'ticket_id', min: 1);
         $action = $this->requireEnum($arguments, 'action', self::VALID_ACTIONS);
+        $actor = $this->resolveAgentActor();
 
-        $ticket = Ticket::query()->find($ticketId);
+        $ticket = Ticket::query()
+            ->where('company_id', $actor->companyId)
+            ->find($ticketId);
 
         if ($ticket === null) {
             return ToolResult::error(
@@ -155,8 +158,6 @@ class TicketUpdateTool extends AbstractTool
                 'ticket_not_found',
             );
         }
-
-        $actor = $this->resolveAgentActor($ticket);
 
         return match ($action) {
             'post_comment' => $this->handlePostComment($ticket, $actor, $arguments),
@@ -233,7 +234,7 @@ class TicketUpdateTool extends AbstractTool
      * then the authenticated user's linked employee, before falling back
      * to Lara's provisioned employee record.
      */
-    private function resolveAgentActor(Ticket $ticket): Actor
+    private function resolveAgentActor(): Actor
     {
         if ($this->executionContext->active()) {
             $employee = Employee::query()->find($this->executionContext->employeeId());
@@ -261,7 +262,7 @@ class TicketUpdateTool extends AbstractTool
 
         return $this->makeAgentActor(
             employeeId: $lara?->id ?? Employee::LARA_ID,
-            companyId: $lara?->company_id ?? $ticket->company_id,
+            companyId: $lara?->company_id,
             actingForUserId: $user !== null ? (int) $user->getAuthIdentifier() : null,
         );
     }

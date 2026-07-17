@@ -3,7 +3,6 @@
 namespace App\Modules\Operation\IT\Livewire\Widgets;
 
 use App\Base\Dashboard\Widget;
-use App\Modules\Core\Company\Models\Company;
 use App\Modules\Operation\IT\Livewire\Concerns\PresentsTicketBadges;
 use App\Modules\Operation\IT\Models\Ticket;
 use Illuminate\Contracts\View\View;
@@ -39,7 +38,7 @@ class TicketQueue extends Widget
         $row = Ticket::query()
             ->where('company_id', $this->companyId())
             ->selectRaw("sum(case when status = 'open' then 1 else 0 end) as open_count")
-            ->selectRaw("sum(case when status in ('assigned', 'in_progress', 'review') and assignee_id = ? then 1 else 0 end) as mine_count", [$this->myEmployeeId() ?? 0])
+            ->selectRaw("sum(case when status in ('assigned', 'in_progress', 'blocked', 'awaiting_parts', 'review') and assignee_id = ? then 1 else 0 end) as mine_count", [$this->myEmployeeId() ?? 0])
             ->selectRaw("sum(case when status in ('blocked', 'awaiting_parts') then 1 else 0 end) as waiting_count")
             ->first();
 
@@ -65,15 +64,15 @@ class TicketQueue extends Widget
                     ->orWhere('status', 'blocked');
             })
             ->orderByRaw("case when status = 'blocked' then 1 else 0 end")
-            ->orderByRaw("case priority when 'critical' then 4 when 'high' then 3 when 'medium' then 2 when 'low' then 1 else 0 end desc")
+            ->orderByRaw(Ticket::priorityRankSql().' desc')
             ->orderBy('created_at')
             ->limit(self::ATTENTION_LIMIT)
             ->get();
     }
 
-    private function companyId(): int
+    private function companyId(): ?int
     {
-        return Auth::user()?->getCompanyId() ?? Company::LICENSEE_ID;
+        return Auth::user()?->getCompanyId();
     }
 
     private function myEmployeeId(): ?int

@@ -1,4 +1,5 @@
 <?php
+
 return [
     'domains' => [
         'operations' => 'Operational modules, including quality management.',

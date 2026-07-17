@@ -42,6 +42,12 @@ class Ticket extends Model implements PresentsWorkflowNotifications
      */
     public const string FLOW = 'it_ticket';
 
+    /** @var list<string> */
+    public const array OPEN_STATUSES = ['open', 'assigned', 'in_progress', 'blocked', 'awaiting_parts', 'review'];
+
+    /** @var list<string> */
+    public const array DONE_STATUSES = ['resolved', 'closed'];
+
     /**
      * The table associated with the model.
      *
@@ -106,11 +112,19 @@ class Ticket extends Model implements PresentsWorkflowNotifications
     }
 
     /**
+     * Portable CASE expression ranking priorities by severity.
+     */
+    public static function priorityRankSql(string $column = 'priority'): string
+    {
+        return "case {$column} when 'critical' then 4 when 'high' then 3 when 'medium' then 2 when 'low' then 1 else 0 end";
+    }
+
+    /**
      * Create a new factory instance for the model.
      */
     protected static function newFactory(): TicketFactory
     {
-        return new TicketFactory;
+        return TicketFactory::new();
     }
 
     /**

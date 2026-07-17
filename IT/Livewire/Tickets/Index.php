@@ -27,13 +27,6 @@ class Index extends SearchablePaginatedList
      */
     public const array SCOPES = ['open', 'mine', 'unassigned', 'done', 'all'];
 
-    /**
-     * Statuses that mean "still being worked" (everything except done).
-     */
-    private const array OPEN_STATUSES = ['open', 'assigned', 'in_progress', 'blocked', 'awaiting_parts', 'review'];
-
-    private const array DONE_STATUSES = ['resolved', 'closed'];
-
     public string $search = '';
 
     #[Url]
@@ -113,7 +106,7 @@ class Index extends SearchablePaginatedList
     {
         $query = Ticket::query()
             ->select('operation_it_tickets.*')
-            ->selectRaw($this->priorityRankSql().' as priority_rank')
+            ->selectRaw(Ticket::priorityRankSql('operation_it_tickets.priority').' as priority_rank')
             ->leftJoin('employees as reporter_employee', 'operation_it_tickets.reporter_id', '=', 'reporter_employee.id')
             ->leftJoin('employees as assignee_employee', 'operation_it_tickets.assignee_id', '=', 'assignee_employee.id')
             ->where('operation_it_tickets.company_id', $this->companyId())
@@ -173,13 +166,13 @@ class Index extends SearchablePaginatedList
     private function applyScope(EloquentBuilder $query): void
     {
         match ($this->scope) {
-            'mine' => $query->whereIn('operation_it_tickets.status', self::OPEN_STATUSES)
+            'mine' => $query->whereIn('operation_it_tickets.status', Ticket::OPEN_STATUSES)
                 ->where('operation_it_tickets.assignee_id', $this->myEmployeeId()),
-            'unassigned' => $query->whereIn('operation_it_tickets.status', self::OPEN_STATUSES)
+            'unassigned' => $query->whereIn('operation_it_tickets.status', Ticket::OPEN_STATUSES)
                 ->whereNull('operation_it_tickets.assignee_id'),
-            'done' => $query->whereIn('operation_it_tickets.status', self::DONE_STATUSES),
+            'done' => $query->whereIn('operation_it_tickets.status', Ticket::DONE_STATUSES),
             'all' => null,
-            default => $query->whereIn('operation_it_tickets.status', self::OPEN_STATUSES),
+            default => $query->whereIn('operation_it_tickets.status', Ticket::OPEN_STATUSES),
         };
     }
 
@@ -244,13 +237,5 @@ class Index extends SearchablePaginatedList
         $employeeId = Auth::user()?->employee_id;
 
         return $employeeId !== null ? (int) $employeeId : null;
-    }
-
-    /**
-     * Portable CASE expression ranking priorities by severity for sorting.
-     */
-    private function priorityRankSql(): string
-    {
-        return "case operation_it_tickets.priority when 'critical' then 4 when 'high' then 3 when 'medium' then 2 when 'low' then 1 else 0 end";
     }
 }

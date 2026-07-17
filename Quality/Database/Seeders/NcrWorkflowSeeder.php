@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Modules\Operation\Quality\Database\Seeders;
 
 use App\Modules\Operation\Quality\Models\Ncr;

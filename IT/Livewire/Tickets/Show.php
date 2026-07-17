@@ -45,6 +45,12 @@ class Show extends Component
      */
     public function postComment(TicketService $ticketService): void
     {
+        if (! $this->allowed('operations.it.ticket.update')) {
+            $this->notifyError(__('You do not have permission to update tickets.'));
+
+            return;
+        }
+
         $this->validate(
             ['comment' => ['required', 'string', 'max:5000']],
             [],
@@ -63,6 +69,12 @@ class Show extends Component
      */
     public function transitionTo(string $toCode, TicketService $ticketService): void
     {
+        if (! $this->allowed('operations.it.ticket.update')) {
+            $this->notifyError(__('You do not have permission to update tickets.'));
+
+            return;
+        }
+
         $result = $ticketService->transition(
             $this->ticket,
             Actor::forUser(Auth::user()),
@@ -149,7 +161,7 @@ class Show extends Component
             [$field => $rules[$field]],
         )->validate();
 
-        $ticketService->updateDetails($this->ticket, $validated);
+        $ticketService->updateDetails($this->ticket, Actor::forUser(Auth::user()), $validated);
         $this->refreshTicket();
         $this->notify(__('Saved.'));
     }
@@ -185,11 +197,16 @@ class Show extends Component
     {
         $timeline = $this->ticket->statusTimeline();
 
-        $names = User::query()
-            ->whereIn('id', $timeline->pluck('actor_id')->filter()->unique())
+        $userNames = User::query()
+            ->whereIn('id', $timeline->whereIn('actor_type', [null, 'user'])->pluck('actor_id')->filter()->unique())
             ->pluck('name', 'id');
+        $agentNames = Employee::query()
+            ->whereIn('id', $timeline->where('actor_type', 'agent')->pluck('actor_id')->filter()->unique())
+            ->get()
+            ->mapWithKeys(fn (Employee $employee): array => [$employee->id => $employee->displayName()]);
 
-        return $timeline->each(function ($entry) use ($names): void {
+        return $timeline->each(function ($entry) use ($userNames, $agentNames): void {
+            $names = $entry->actor_type === 'agent' ? $agentNames : $userNames;
             $entry->setAttribute('actorName', $names[$entry->actor_id] ?? null);
         });
     }

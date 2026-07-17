@@ -8,10 +8,10 @@
     <div class="space-y-section-gap">
         <x-ui.page-header :title="__('New Ticket')" :subtitle="__('Submit an IT support request')">
             <x-slot name="actions">
-                <x-ui.button variant="ghost" as="a" href="{{ route('it.tickets.index') }}" wire:navigate>
+                <x-ui.link href="{{ route('it.tickets.index') }}">
                     <x-icon name="heroicon-o-arrow-left" class="w-4 h-4" />
                     {{ __('Back') }}
-                </x-ui.button>
+                </x-ui.link>
             </x-slot>
         </x-ui.page-header>
 
@@ -64,9 +64,9 @@
                     <x-ui.button type="submit" variant="primary">
                         {{ __('Create Ticket') }}
                     </x-ui.button>
-                    <x-ui.button variant="ghost" as="a" href="{{ route('it.tickets.index') }}" wire:navigate>
+                    <x-ui.link href="{{ route('it.tickets.index') }}">
                         {{ __('Cancel') }}
-                    </x-ui.button>
+                    </x-ui.link>
                 </div>
             </form>
         </x-ui.card>

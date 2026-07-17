@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Modules\Operation\Quality\Models;
 
 use App\Base\Media\Models\MediaAsset;

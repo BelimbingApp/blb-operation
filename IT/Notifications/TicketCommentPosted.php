@@ -44,6 +44,7 @@ class TicketCommentPosted extends Notification
             'body' => sprintf('%s — %s', $this->authorName, $this->history->comment),
             'comment_tag' => $this->history->comment_tag,
             'actor_id' => $this->history->actor_id,
+            'actor_type' => $this->history->actor_type,
         ];
     }
 }

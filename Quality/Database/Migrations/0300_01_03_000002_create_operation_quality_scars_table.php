@@ -1,4 +1,5 @@
 <?php
+
 use App\Base\Database\Concerns\RegistersSeeders;
 use App\Modules\Operation\Quality\Database\Seeders\ScarWorkflowSeeder;
 use Illuminate\Database\Migrations\Migration;

@@ -162,7 +162,7 @@
                     <tr wire:key="ticket-{{ $ticket->id }}">
                         <td class="px-table-cell-x py-table-cell-y whitespace-nowrap text-sm text-muted tabular-nums">{{ $ticket->id }}</td>
                         <td class="px-table-cell-x py-table-cell-y">
-                            <a href="{{ route('it.tickets.show', $ticket) }}" wire:navigate class="text-sm font-medium text-accent hover:underline">{{ $ticket->title }}</a>
+                            <x-ui.link href="{{ route('it.tickets.show', $ticket) }}" class="text-sm font-medium">{{ $ticket->title }}</x-ui.link>
                         </td>
                         <td class="px-table-cell-x py-table-cell-y whitespace-nowrap text-sm text-muted">{{ $ticket->reporter?->displayName() ?? '—' }}</td>
                         <td class="px-table-cell-x py-table-cell-y whitespace-nowrap text-sm {{ $ticket->assignee ? 'text-ink' : 'text-muted' }}">{{ $ticket->assignee?->displayName() ?? '—' }}</td>
@@ -174,7 +174,7 @@
                         </td>
                         <td class="px-table-cell-x py-table-cell-y whitespace-nowrap text-sm text-muted">{{ $this->categoryLabel($ticket->category) }}</td>
                         <td class="px-table-cell-x py-table-cell-y whitespace-nowrap text-sm text-muted">
-                            <span title="{{ $ticket->created_at?->format('Y-m-d H:i:s') }}">{{ $ticket->created_at?->diffForHumans() }}</span>
+                            <x-ui.datetime :value="$ticket->created_at" />
                         </td>
                     </tr>
                 @empty

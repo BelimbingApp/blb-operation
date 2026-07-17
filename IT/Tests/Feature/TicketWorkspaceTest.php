@@ -1,12 +1,14 @@
 <?php
 
 use App\Base\Authz\DTO\Actor;
+use App\Base\Authz\Enums\PrincipalType;
 use App\Base\Dashboard\Services\DashboardLayout;
 use App\Base\Workflow\DTO\TransitionContext;
 use App\Modules\Core\Company\Models\Company;
 use App\Modules\Core\Employee\Models\Employee;
 use App\Modules\Core\User\Models\User;
 use App\Modules\Operation\IT\Database\Seeders\TicketWorkflowSeeder;
+use App\Modules\Operation\IT\Exceptions\TicketMutationDenied;
 use App\Modules\Operation\IT\Livewire\Tickets\Board;
 use App\Modules\Operation\IT\Livewire\Tickets\Index;
 use App\Modules\Operation\IT\Livewire\Tickets\Show;
@@ -121,6 +123,60 @@ test('a ticket cannot enter assigned without an assignee', function (): void {
     expect($ticket->refresh()->status)->toBe('open');
 });
 
+test('assignment rejects employees from another company and terminal tickets', function (): void {
+    $fixture = ticketFixture();
+    $ticket = makeTicket($fixture);
+    $otherCompany = Company::factory()->create();
+    $foreignEmployee = Employee::factory()->create([
+        'company_id' => $otherCompany->id,
+        'status' => 'active',
+    ]);
+    $service = app(TicketService::class);
+    $actor = Actor::forUser($fixture['admin']);
+
+    expect($service->assign($ticket, $actor, $foreignEmployee)->success)->toBeFalse()
+        ->and($ticket->refresh()->status)->toBe('open')
+        ->and($ticket->assignee_id)->toBeNull();
+
+    $service->assign($ticket, $actor, $fixture['tech']);
+    $service->transition($ticket->refresh(), $actor, 'in_progress');
+    $service->transition($ticket->refresh(), $actor, 'resolved');
+
+    expect($service->assign($ticket->refresh(), $actor, $fixture['reporter'])->success)->toBeFalse()
+        ->and($ticket->refresh()->status)->toBe('resolved')
+        ->and($ticket->assignee_id)->toBe($fixture['tech']->id);
+});
+
+test('a denied assignment leaves both status and assignee unchanged', function (): void {
+    $fixture = ticketFixture();
+    $ticket = makeTicket($fixture);
+    $viewer = User::factory()->create(['company_id' => $fixture['company']->id]);
+
+    $result = app(TicketService::class)->assign(
+        $ticket,
+        Actor::forUser($viewer),
+        $fixture['tech'],
+    );
+
+    expect($result->success)->toBeFalse()
+        ->and($ticket->refresh()->status)->toBe('open')
+        ->and($ticket->assignee_id)->toBeNull();
+});
+
+test('service mutations reject an actor from another company', function (): void {
+    $fixture = ticketFixture();
+    $ticket = makeTicket($fixture);
+    $otherCompany = Company::factory()->create();
+    $otherUser = User::factory()->create(['company_id' => $otherCompany->id]);
+
+    expect(fn () => app(TicketService::class)->postComment(
+        $ticket,
+        Actor::forUser($otherUser),
+        'Cross-company comment',
+    ))->toThrow(TicketMutationDenied::class)
+        ->and($ticket->statusTimeline())->toHaveCount(1);
+});
+
 // -- Comments -----------------------------------------------------------------
 
 test('posting a comment notifies reporter and assignee but not the author', function (): void {
@@ -144,6 +200,24 @@ test('posting a comment notifies reporter and assignee but not the author', func
     // The author (admin) got nothing.
     $adminNotifications = DB::table('notifications')->where('notifiable_id', $fixture['admin']->id)->count();
     expect($adminNotifications)->toBe(0);
+});
+
+test('the timeline resolves agent actors in the employee namespace', function (): void {
+    $fixture = ticketFixture();
+    $ticket = makeTicket($fixture);
+    $agent = new Actor(
+        type: PrincipalType::AGENT,
+        id: $fixture['tech']->id,
+        companyId: $fixture['company']->id,
+        actingForUserId: $fixture['admin']->id,
+    );
+
+    app(TicketService::class)->postComment($ticket, $agent, 'Agent-authored update.');
+
+    Livewire::actingAs($fixture['admin'])
+        ->test(Show::class, ['ticket' => $ticket])
+        ->assertSee($fixture['tech']->displayName())
+        ->assertSee('Agent-authored update.');
 });
 
 // -- Lifecycle actions ---------------------------------------------------------
@@ -209,6 +283,35 @@ test('the workspace edits facts in place and assigns via the combobox', function
     expect($ticket->priority)->toBe('critical');
     expect($ticket->status)->toBe('assigned');
     expect($ticket->assignee_id)->toBe($fixture['tech']->id);
+});
+
+test('view-only users cannot comment or transition from the workspace or board', function (): void {
+    $fixture = ticketFixture();
+    $ticket = makeTicket($fixture);
+    $service = app(TicketService::class);
+    $service->assign($ticket, Actor::forUser($fixture['admin']), $fixture['tech']);
+    $ticket->refresh();
+
+    $viewerEmployee = Employee::factory()->create(['company_id' => $fixture['company']->id]);
+    $viewer = User::factory()->create([
+        'company_id' => $fixture['company']->id,
+        'employee_id' => $viewerEmployee->id,
+    ]);
+    $historyCount = $ticket->statusTimeline()->count();
+
+    Livewire::actingAs($viewer)
+        ->test(Show::class, ['ticket' => $ticket])
+        ->assertDontSee('Add to the conversation')
+        ->set('comment', 'I should not be able to post this.')
+        ->call('postComment')
+        ->call('transitionTo', 'in_progress');
+
+    Livewire::actingAs($viewer)
+        ->test(Board::class)
+        ->call('moveTicket', $ticket->id, 'in_progress');
+
+    expect($ticket->refresh()->status)->toBe('assigned')
+        ->and($ticket->statusTimeline()->count())->toBe($historyCount);
 });
 
 test('the workspace 404s for tickets of another company', function (): void {
@@ -321,6 +424,23 @@ test('the board assigns open tickets dropped on Up Next', function (): void {
     expect($ticket->assignee_id)->toBe($fixture['tech']->id);
 });
 
+test('the done board window is based on resolution time rather than later edits', function (): void {
+    $fixture = ticketFixture();
+    $oldResolution = now()->subDays(15);
+    Ticket::query()->create([
+        'company_id' => $fixture['company']->id,
+        'reporter_id' => $fixture['reporter']->id,
+        'title' => 'Old resolved ticket edited today',
+        'status' => 'resolved',
+        'priority' => 'low',
+        'resolved_at' => $oldResolution,
+    ]);
+
+    Livewire::actingAs($fixture['admin'])
+        ->test(Board::class)
+        ->assertDontSee('Old resolved ticket edited today');
+});
+
 // -- Dashboard widget -------------------------------------------------------------
 
 test('the ticket queue widget shows queue numbers and attention tickets', function (): void {
@@ -338,7 +458,7 @@ test('the ticket queue widget shows queue numbers and attention tickets', functi
         ->test(TicketQueue::class)
         ->assertSee('Unassigned critical outage')
         ->assertSee('Blocked on serial number')
-        ->assertSee('open');
+        ->assertSee('Open');
 });
 
 test('the ticket queue widget is discovered for users with ticket access', function (): void {
@@ -347,6 +467,29 @@ test('the ticket queue widget is discovered for users with ticket access', funct
     $definitions = app(DashboardLayout::class)->visibleFor($fixture['admin']);
 
     expect($definitions->has('operations.it.ticket-queue'))->toBeTrue();
+});
+
+test('the ticket queue mine count includes assigned work that is waiting', function (): void {
+    $fixture = ticketFixture();
+    $ticket = makeTicket($fixture);
+    $service = app(TicketService::class);
+    $actor = Actor::forUser($fixture['admin']);
+    $adminEmployee = Employee::query()->findOrFail($fixture['admin']->employee_id);
+
+    $service->assign($ticket, $actor, $adminEmployee);
+    $service->transition($ticket->refresh(), $actor, 'in_progress');
+    $service->transition($ticket->refresh(), $actor, 'blocked');
+
+    Livewire::actingAs($fixture['admin'])
+        ->test(TicketQueue::class)
+        ->assertViewHas('stats', fn (array $stats): bool => $stats['mine'] === 1);
+});
+
+test('ticket factories keep reporters and assignees inside the ticket company', function (): void {
+    $ticket = Ticket::factory()->assigned()->create();
+
+    expect($ticket->reporter->company_id)->toBe($ticket->company_id)
+        ->and($ticket->assignee?->company_id)->toBe($ticket->company_id);
 });
 
 test('the board renders kanban columns from the workflow config', function (): void {

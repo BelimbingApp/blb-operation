@@ -7,6 +7,7 @@ use App\Base\Workflow\Models\StatusConfig;
 use App\Base\Workflow\Models\StatusTransition;
 use App\Base\Workflow\Models\Workflow;
 use App\Modules\Operation\IT\Models\Ticket;
+use App\Modules\Operation\IT\Workflow\AssignTicket;
 use App\Modules\Operation\IT\Workflow\MarkTicketResolved;
 use App\Modules\Operation\IT\Workflow\RequiresAssigneeGuard;
 use App\Modules\Operation\IT\Workflow\ReturnTicketToQueue;
@@ -82,7 +83,7 @@ class TicketWorkflowSeeder extends Seeder
     private function seedTransitions(): void
     {
         $transitions = [
-            ['from_code' => 'open',            'to_code' => 'assigned',       'label' => 'Assign',              'capability' => 'operations.it.ticket.assign', 'guard_class' => RequiresAssigneeGuard::class, 'position' => 0],
+            ['from_code' => 'open',            'to_code' => 'assigned',       'label' => 'Assign',              'capability' => 'operations.it.ticket.assign', 'guard_class' => RequiresAssigneeGuard::class, 'action_class' => AssignTicket::class, 'position' => 0],
             ['from_code' => 'assigned',        'to_code' => 'in_progress',    'label' => 'Start Work',          'position' => 0],
             ['from_code' => 'assigned',        'to_code' => 'open',           'label' => 'Return to Queue',     'capability' => 'operations.it.ticket.assign', 'action_class' => ReturnTicketToQueue::class, 'position' => 1],
             ['from_code' => 'in_progress',     'to_code' => 'awaiting_parts', 'label' => 'Await Parts',         'position' => 0],
@@ -101,7 +102,7 @@ class TicketWorkflowSeeder extends Seeder
             StatusTransition::query()->updateOrCreate(
                 ['flow' => self::FLOW, 'from_code' => $transition['from_code'], 'to_code' => $transition['to_code']],
                 array_merge(
-                    ['capability' => null, 'guard_class' => null, 'action_class' => null],
+                    ['capability' => 'operations.it.ticket.update', 'guard_class' => null, 'action_class' => null],
                     $transition,
                     ['flow' => self::FLOW, 'is_active' => true],
                 ),

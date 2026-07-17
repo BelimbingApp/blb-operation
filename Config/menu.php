@@ -1,4 +1,5 @@
 <?php
+
 /*
  * Operations domain anchor.
  *

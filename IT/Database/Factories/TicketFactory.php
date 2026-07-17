@@ -20,6 +20,22 @@ class TicketFactory extends Factory
      */
     protected $model = Ticket::class;
 
+    public function configure(): static
+    {
+        return $this->afterCreating(function (Ticket $ticket): void {
+            if ((int) Employee::query()->whereKey($ticket->reporter_id)->value('company_id') !== (int) $ticket->company_id) {
+                $ticket->reporter_id = Employee::factory()->create(['company_id' => $ticket->company_id])->id;
+            }
+
+            if ($ticket->assignee_id !== null
+                && (int) Employee::query()->whereKey($ticket->assignee_id)->value('company_id') !== (int) $ticket->company_id) {
+                $ticket->assignee_id = Employee::factory()->create(['company_id' => $ticket->company_id])->id;
+            }
+
+            $ticket->save();
+        });
+    }
+
     /**
      * Define the model's default state.
      *

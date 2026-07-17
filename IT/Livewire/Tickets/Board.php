@@ -36,8 +36,6 @@ class Board extends Component
      */
     private const int DONE_WINDOW_DAYS = 14;
 
-    private const array DONE_STATUSES = ['resolved', 'closed'];
-
     #[Url]
     public bool $mineOnly = false;
 
@@ -49,6 +47,12 @@ class Board extends Component
      */
     public function moveTicket(int $ticketId, string $toCode): void
     {
+        if (! $this->allowed('operations.it.ticket.update')) {
+            $this->notifyError(__('You do not have permission to update tickets.'));
+
+            return;
+        }
+
         $ticket = $this->findTicket($ticketId);
 
         if ($ticket === null) {
@@ -138,11 +142,11 @@ class Board extends Component
         $query = Ticket::query()
             ->where('company_id', $this->companyId())
             ->where(function ($builder): void {
-                $builder->whereNotIn('status', self::DONE_STATUSES)
-                    ->orWhere('updated_at', '>=', Carbon::now()->subDays(self::DONE_WINDOW_DAYS));
+                $builder->whereNotIn('status', Ticket::DONE_STATUSES)
+                    ->orWhere('resolved_at', '>=', Carbon::now()->subDays(self::DONE_WINDOW_DAYS));
             })
             ->with('assignee', 'reporter')
-            ->orderByRaw("case priority when 'critical' then 4 when 'high' then 3 when 'medium' then 2 when 'low' then 1 else 0 end desc")
+            ->orderByRaw(Ticket::priorityRankSql().' desc')
             ->orderBy('created_at');
 
         if ($this->mineOnly) {

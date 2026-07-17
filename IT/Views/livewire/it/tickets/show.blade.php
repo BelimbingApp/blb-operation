@@ -40,6 +40,7 @@ use App\Modules\Operation\IT\Livewire\Tickets\Show;
                     <h2 class="text-base font-medium tracking-tight text-ink mb-3">{{ __('Activity') }}</h2>
                     <x-workflow.status-timeline :entries="$timeline" />
 
+                    @if($canUpdate)
                     <div class="mt-6 pt-4 border-t border-border-default space-y-3">
                         <x-ui.textarea
                             id="ticket-comment"
@@ -91,6 +92,7 @@ use App\Modules\Operation\IT\Livewire\Tickets\Show;
                         </div>
                         <p class="text-xs text-muted">{{ __('Moving the ticket carries your comment along, so the reason lands in the timeline.') }}</p>
                     </div>
+                    @endif
                 </x-ui.card>
             </div>
 
@@ -188,7 +190,7 @@ use App\Modules\Operation\IT\Livewire\Tickets\Show;
                         <dl>
                             <dt class="text-[11px] font-semibold text-muted uppercase tracking-wider">{{ __('Opened') }}</dt>
                             <dd class="mt-0.5 text-sm text-ink">
-                                <span title="{{ $ticket->created_at?->format('Y-m-d H:i:s') }}">{{ $ticket->created_at?->diffForHumans() }}</span>
+                                <x-ui.datetime :value="$ticket->created_at" />
                             </dd>
                         </dl>
 
@@ -196,7 +198,7 @@ use App\Modules\Operation\IT\Livewire\Tickets\Show;
                             <dl>
                                 <dt class="text-[11px] font-semibold text-muted uppercase tracking-wider">{{ __('Resolved') }}</dt>
                                 <dd class="mt-0.5 text-sm text-ink">
-                                    <span title="{{ $ticket->resolved_at->format('Y-m-d H:i:s') }}">{{ $ticket->resolved_at->diffForHumans() }}</span>
+                                    <x-ui.datetime :value="$ticket->resolved_at" />
                                 </dd>
                             </dl>
                         @endif

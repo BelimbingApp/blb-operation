@@ -134,11 +134,10 @@
                                         class="rounded-md border border-border-default bg-surface-card p-2.5 shadow-sm cursor-grab active:cursor-grabbing"
                                         :class="dragging?.id === {{ $ticket->id }} ? 'opacity-50' : ''"
                                     >
-                                        <a
+                                        <x-ui.link
                                             href="{{ route('it.tickets.show', $ticket) }}"
-                                            wire:navigate
-                                            class="block text-sm font-medium text-ink hover:text-accent leading-snug"
-                                        >{{ $ticket->title }}</a>
+                                            class="text-sm font-medium leading-snug"
+                                        >{{ $ticket->title }}</x-ui.link>
 
                                         <div class="mt-2 flex flex-wrap items-center gap-1.5">
                                             <x-ui.badge :variant="$this->priorityVariant($ticket->priority)">{{ $this->priorityLabel($ticket->priority) }}</x-ui.badge>
@@ -149,7 +148,7 @@
 
                                         <div class="mt-2 flex items-center justify-between text-xs text-muted">
                                             <span class="truncate">{{ $ticket->assignee?->displayName() ?? __('Unassigned') }}</span>
-                                            <span class="shrink-0 tabular-nums" title="{{ $ticket->created_at?->format('Y-m-d H:i:s') }}">{{ $ticket->created_at?->diffForHumans(['short' => true, 'parts' => 1]) }}</span>
+                                            <x-ui.datetime :value="$ticket->created_at" class="shrink-0 tabular-nums" />
                                         </div>
                                     </article>
                                 @endforeach

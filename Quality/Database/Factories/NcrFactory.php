@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Modules\Operation\Quality\Database\Factories;
 
 use App\Modules\Core\Company\Models\Company;

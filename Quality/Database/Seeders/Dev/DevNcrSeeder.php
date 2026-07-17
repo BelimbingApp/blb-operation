@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Modules\Operation\Quality\Database\Seeders\Dev;
 
 use App\Base\Authz\DTO\Actor;

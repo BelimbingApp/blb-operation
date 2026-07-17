@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Modules\Operation\Quality\Livewire;
 
 use App\Base\Foundation\Livewire\SearchablePaginatedList;

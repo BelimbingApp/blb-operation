@@ -67,38 +67,52 @@ class DevTicketSeeder extends DevSeeder
     }
 
     /**
-     * Ensure the licensee crew members have login users so assignments and
-     * notifications behave like production. Password: 'password'.
+     * Resolve the licensee IT crew to real employees and ensure each has a
+     * login user so assignments and notifications behave like production.
+     *
+     * Crew mirror DevEmployeeSeeder's licensee employees (LIC-001..004) and
+     * are keyed by employee_number, so re-runs reuse the same people instead
+     * of duplicating them. The admin (LIC-001) keeps their existing login;
+     * the agent crew (LIC-002..004) get provisioned users. Password: 'password'.
      */
     private function seedCrew(Company $company): void
     {
         $definitions = [
-            'kiat' => ['full_name' => 'Kiat Ng', 'email' => 'kiatng@gmail.com'],
-            'aiman' => ['full_name' => 'Aiman Rahman', 'email' => 'aiman.rahman@blb.my'],
-            'sofia' => ['full_name' => 'Sofia Lim', 'email' => 'sofia.lim@blb.my'],
-            'daniel' => ['full_name' => 'Daniel Khoo', 'email' => 'daniel.khoo@blb.my'],
+            'kiat' => ['employee_number' => 'LIC-001', 'full_name' => 'Kiat Ng', 'email' => 'kiatng@gmail.com'],
+            'aiman' => ['employee_number' => 'LIC-002', 'full_name' => 'Aiman Rahman', 'email' => 'aiman.rahman@blb.my'],
+            'sofia' => ['employee_number' => 'LIC-003', 'full_name' => 'Sofia Lim', 'email' => 'sofia.lim@blb.my'],
+            'daniel' => ['employee_number' => 'LIC-004', 'full_name' => 'Daniel Khoo', 'email' => 'daniel.khoo@blb.my'],
         ];
 
         foreach ($definitions as $key => $definition) {
             $employee = Employee::query()->firstOrCreate(
-                ['company_id' => $company->id, 'full_name' => $definition['full_name']],
-                ['status' => 'active'],
-            );
-
-            $employee->update([
-                'email' => $definition['email'],
-                'status' => 'active',
-            ]);
-
-            $user = User::query()->firstOrCreate(
-                ['email' => $definition['email']],
+                ['company_id' => $company->id, 'employee_number' => $definition['employee_number']],
                 [
-                    'company_id' => $company->id,
-                    'name' => $definition['full_name'],
-                    'password' => 'password',
-                    'email_verified_at' => Carbon::now(),
+                    'full_name' => $definition['full_name'],
+                    'employee_type' => $key === 'kiat' ? 'full_time' : 'agent',
+                    'status' => 'active',
                 ],
             );
+
+            // Reuse an existing login user linked to this employee (the
+            // admin for LIC-001); otherwise provision one for the agent crew.
+            $user = $employee->user;
+
+            if ($user !== null) {
+                $employee->update(['status' => 'active']);
+            } else {
+                $employee->update(['email' => $definition['email'], 'status' => 'active']);
+
+                $user = User::query()->firstOrCreate(
+                    ['email' => $definition['email']],
+                    [
+                        'company_id' => $company->id,
+                        'name' => $definition['full_name'],
+                        'password' => 'password',
+                        'email_verified_at' => Carbon::now(),
+                    ],
+                );
+            }
 
             // Heal stale dev data deterministically: this email, employee,
             // and company describe one crew identity.
@@ -110,7 +124,6 @@ class DevTicketSeeder extends DevSeeder
             $user->update([
                 'company_id' => $company->id,
                 'employee_id' => $employee->id,
-                'name' => $definition['full_name'],
                 'email_verified_at' => $user->email_verified_at ?? Carbon::now(),
             ]);
             PrincipalRole::query()

@@ -8,10 +8,10 @@
     <div class="space-y-section-gap">
         <x-ui.page-header :title="__('New Ticket')" :subtitle="__('Submit an IT support request')">
             <x-slot name="actions">
-                <x-ui.button variant="ghost" as="a" href="{{ route('it.tickets.index') }}" wire:navigate>
+                <x-ui.link href="{{ route('it.tickets.index') }}">
                     <x-icon name="heroicon-o-arrow-left" class="w-4 h-4" />
                     {{ __('Back') }}
-                </x-ui.button>
+                </x-ui.link>
             </x-slot>
         </x-ui.page-header>
 
@@ -29,19 +29,16 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <x-ui.select id="priority" wire:model="priority" label="{{ __('Priority') }}" :error="$errors->first('priority')">
-                        <option value="low">{{ __('Low') }}</option>
-                        <option value="medium">{{ __('Medium') }}</option>
-                        <option value="high">{{ __('High') }}</option>
-                        <option value="critical">{{ __('Critical') }}</option>
+                        @foreach(config('it.priorities') as $code => $label)
+                            <option value="{{ $code }}">{{ __($label) }}</option>
+                        @endforeach
                     </x-ui.select>
 
                     <x-ui.select id="category" wire:model="category" label="{{ __('Category') }}" :error="$errors->first('category')">
                         <option value="">{{ __('Select...') }}</option>
-                        <option value="hardware">{{ __('Hardware') }}</option>
-                        <option value="software">{{ __('Software') }}</option>
-                        <option value="network">{{ __('Network') }}</option>
-                        <option value="access">{{ __('Access') }}</option>
-                        <option value="other">{{ __('Other') }}</option>
+                        @foreach(config('it.categories') as $code => $label)
+                            <option value="{{ $code }}">{{ __($label) }}</option>
+                        @endforeach
                     </x-ui.select>
 
                     <x-ui.input
@@ -67,9 +64,9 @@
                     <x-ui.button type="submit" variant="primary">
                         {{ __('Create Ticket') }}
                     </x-ui.button>
-                    <x-ui.button variant="ghost" as="a" href="{{ route('it.tickets.index') }}" wire:navigate>
+                    <x-ui.link href="{{ route('it.tickets.index') }}">
                         {{ __('Cancel') }}
-                    </x-ui.button>
+                    </x-ui.link>
                 </div>
             </form>
         </x-ui.card>

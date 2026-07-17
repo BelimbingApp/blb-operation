@@ -24,10 +24,15 @@ class Create extends Component
 
     public function store(TicketService $ticketService): void
     {
+        // Empty selects/inputs arrive as '' — normalize to null so `nullable` applies.
+        $this->category = $this->category !== '' ? $this->category : null;
+        $this->description = $this->description !== '' ? $this->description : null;
+        $this->location = $this->location !== '' ? $this->location : null;
+
         $validated = $this->validate([
             'title' => ['required', 'string', 'max:255'],
-            'priority' => ['required', Rule::in(['low', 'medium', 'high', 'critical'])],
-            'category' => ['nullable', 'string', 'max:255'],
+            'priority' => ['required', Rule::in(array_keys(config('it.priorities')))],
+            'category' => ['nullable', Rule::in(array_keys(config('it.categories')))],
             'description' => ['nullable', 'string', 'max:5000'],
             'location' => ['nullable', 'string', 'max:255'],
         ]);

@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Modules\Operation\Quality\Database\Seeders\Dev\Concerns;
 
 use App\Modules\Core\User\Models\User;

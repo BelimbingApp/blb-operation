@@ -15,6 +15,8 @@ class ServiceProvider extends BaseServiceProvider
      */
     public function register(): void
     {
+        $this->mergeConfigFrom(__DIR__.'/Config/it.php', 'it');
+
         $this->app->singleton(TicketUpdateTool::class);
         $this->app->tag(TicketUpdateTool::class, Tool::CONTAINER_TAG);
 

@@ -48,9 +48,10 @@ it('attributes ticket comments to the authenticated user employee record', funct
     expect($entry)->not->toBeNull();
     expect($user->employee_id)->toBe($employee->id);
     expect($entry?->actor_id)->toBe($employee->id);
+    expect($entry?->actor_type)->toBe('agent');
 });
 
-it('falls back to Lara attribution when no employee context is available', function () {
+it('does not let the Lara fallback cross a company boundary', function () {
     $company = Company::factory()->create();
     Employee::provisionLara();
 
@@ -78,7 +79,6 @@ it('falls back to Lara attribution when no employee context is available', funct
 
     $entry = StatusHistory::latest('it_ticket', $ticket->id);
 
-    expect((string) $result)->toContain("Comment posted to ticket #{$ticket->id}.");
-    expect($entry)->not->toBeNull();
-    expect($entry?->actor_id)->toBe(Employee::LARA_ID);
+    expect((string) $result)->toContain("Ticket #{$ticket->id} not found.");
+    expect($entry)->toBeNull();
 });

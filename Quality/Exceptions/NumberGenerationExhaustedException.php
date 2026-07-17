@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Modules\Operation\Quality\Exceptions;
 
 use App\Base\Foundation\Exceptions\BlbInvariantViolationException;

@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Modules\Operation\Quality\Services;
 
 use App\Base\Authz\DTO\Actor;

@@ -22,7 +22,7 @@ class TicketQueue extends Widget
 
     private const int ATTENTION_LIMIT = 4;
 
-    public function render(): View
+    protected function content(): View
     {
         return view('operation-it::livewire.it.tickets.widgets.queue', [
             'stats' => $this->stats(),

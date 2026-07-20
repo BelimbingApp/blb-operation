@@ -25,7 +25,7 @@ return new class extends Migration
             $table->foreignId('created_by_user_id')->nullable()->constrained('users');
             $table->timestamps();
 
-            $table->index(['actionable_type', 'actionable_id']);
+            $table->index(['actionable_type', 'actionable_id'], 'operation_quality_actionable_index');
             $table->index(['status', 'due_at']);
         });
     }

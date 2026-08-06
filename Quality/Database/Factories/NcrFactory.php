@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Modules\Operation\Quality\Database\Factories;
+namespace App\Domains\Operation\Quality\Database\Factories;
 
-use App\Modules\Core\Company\Models\Company;
-use App\Modules\Operation\Quality\Models\Ncr;
+use App\Core\Company\Models\Company;
+use App\Domains\Operation\Quality\Models\Ncr;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Model;
 

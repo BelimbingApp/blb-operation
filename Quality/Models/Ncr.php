@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Modules\Operation\Quality\Models;
+namespace App\Domains\Operation\Quality\Models;
 
 use App\Base\Workflow\Concerns\HasWorkflowStatus;
-use App\Modules\Core\Company\Models\Company;
-use App\Modules\Core\User\Models\User;
-use App\Modules\Operation\Quality\Database\Factories\NcrFactory;
+use App\Core\Company\Models\Company;
+use App\Core\User\Models\User;
+use App\Domains\Operation\Quality\Database\Factories\NcrFactory;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;

@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Modules\Operation\Quality\Livewire\Ncr;
+namespace App\Domains\Operation\Quality\Livewire\Ncr;
 
-use App\Modules\Operation\Quality\Livewire\StatusFilteredSearchableIndex;
-use App\Modules\Operation\Quality\Models\Ncr;
+use App\Domains\Operation\Quality\Livewire\StatusFilteredSearchableIndex;
+use App\Domains\Operation\Quality\Models\Ncr;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 

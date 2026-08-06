@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Modules\Operation\Quality\Models\Concerns;
+namespace App\Domains\Operation\Quality\Models\Concerns;
 
-use App\Modules\Operation\Quality\Models\QualityEvidence;
+use App\Domains\Operation\Quality\Models\QualityEvidence;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 trait HasQualityEvidence

@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Modules\Operation\IT\Models;
+namespace App\Domains\Operation\IT\Models;
 
 use App\Base\Workflow\Concerns\HasWorkflowStatus;
 use App\Base\Workflow\Contracts\PresentsWorkflowNotifications;
-use App\Modules\Core\Company\Models\Company;
-use App\Modules\Core\Employee\Models\Employee;
-use App\Modules\Operation\IT\Database\Factories\TicketFactory;
+use App\Core\Company\Models\Company;
+use App\Core\Employee\Models\Employee;
+use App\Domains\Operation\IT\Database\Factories\TicketFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;

@@ -13,10 +13,10 @@ use App\Base\Workflow\Services\StatusManager;
 use App\Base\Workflow\Services\TransitionManager;
 use App\Base\Workflow\Services\TransitionValidator;
 use App\Base\Workflow\Services\WorkflowEngine;
-use App\Modules\Core\Company\Models\Company;
-use App\Modules\Core\Employee\Models\Employee;
-use App\Modules\Core\User\Models\User;
-use App\Modules\Operation\IT\Models\Ticket;
+use App\Core\Company\Models\Company;
+use App\Core\Employee\Models\Employee;
+use App\Core\User\Models\User;
+use App\Domains\Operation\IT\Models\Ticket;
 use Illuminate\Support\Facades\Event;
 
 const WF_TEST_FLOW = 'test_ticket';

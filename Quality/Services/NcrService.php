@@ -1,15 +1,15 @@
 <?php
 
-namespace App\Modules\Operation\Quality\Services;
+namespace App\Domains\Operation\Quality\Services;
 
 use App\Base\Authz\DTO\Actor;
 use App\Base\Workflow\DTO\TransitionContext;
 use App\Base\Workflow\DTO\TransitionResult;
 use App\Base\Workflow\Models\StatusHistory;
-use App\Modules\Operation\Quality\Contracts\NumberingService;
-use App\Modules\Operation\Quality\Exceptions\NumberGenerationExhaustedException;
-use App\Modules\Operation\Quality\Models\Capa;
-use App\Modules\Operation\Quality\Models\Ncr;
+use App\Domains\Operation\Quality\Contracts\NumberingService;
+use App\Domains\Operation\Quality\Exceptions\NumberGenerationExhaustedException;
+use App\Domains\Operation\Quality\Models\Capa;
+use App\Domains\Operation\Quality\Models\Ncr;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;

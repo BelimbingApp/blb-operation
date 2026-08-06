@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Modules\Operation\IT\Workflow;
+namespace App\Domains\Operation\IT\Workflow;
 
 use App\Base\Authz\DTO\Actor;
 use App\Base\Workflow\Contracts\ContextualTransitionGuard;
 use App\Base\Workflow\DTO\GuardResult;
 use App\Base\Workflow\DTO\TransitionContext;
 use App\Base\Workflow\Models\StatusTransition;
-use App\Modules\Core\Employee\Models\Employee;
+use App\Core\Employee\Models\Employee;
 use Illuminate\Database\Eloquent\Model;
 
 /**

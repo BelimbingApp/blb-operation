@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Modules\Operation\Quality\Models;
+namespace App\Domains\Operation\Quality\Models;
 
-use App\Modules\Core\User\Models\User;
+use App\Core\User\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;

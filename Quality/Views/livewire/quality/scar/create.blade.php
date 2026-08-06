@@ -1,5 +1,8 @@
 <?php
-/** @var \App\Modules\Operation\Quality\Livewire\Scar\Create $this */
+
+use App\Domains\Operation\Quality\Livewire\Scar\Create;
+
+/** @var Create $this */
 ?>
 
 <div>

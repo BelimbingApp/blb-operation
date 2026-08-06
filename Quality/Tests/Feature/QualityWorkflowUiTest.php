@@ -1,28 +1,28 @@
 <?php
 
 use App\Base\Authz\DTO\Actor;
-use App\Modules\Operation\Quality\Contracts\NumberingService;
-use App\Modules\Operation\Quality\Database\Seeders\NcrWorkflowSeeder;
-use App\Modules\Operation\Quality\Database\Seeders\ScarWorkflowSeeder;
-use App\Modules\Operation\Quality\Livewire\Ncr\Show as NcrShow;
-use App\Modules\Operation\Quality\Livewire\Scar\Create as ScarCreate;
-use App\Modules\Operation\Quality\Livewire\Scar\Show as ScarShow;
-use App\Modules\Operation\Quality\Models\Capa;
-use App\Modules\Operation\Quality\Models\Ncr;
-use App\Modules\Operation\Quality\Models\QualityEvent;
-use App\Modules\Operation\Quality\Models\Scar;
-use App\Modules\Operation\Quality\Services\NcrService;
-use App\Modules\Operation\Quality\Services\ScarService;
+use App\Domains\Operation\Quality\Contracts\NumberingService;
+use App\Domains\Operation\Quality\Database\Seeders\NcrWorkflowSeeder;
+use App\Domains\Operation\Quality\Database\Seeders\ScarWorkflowSeeder;
+use App\Domains\Operation\Quality\Livewire\Ncr\Show as NcrShow;
+use App\Domains\Operation\Quality\Livewire\Scar\Create as ScarCreate;
+use App\Domains\Operation\Quality\Livewire\Scar\Show as ScarShow;
+use App\Domains\Operation\Quality\Models\Capa;
+use App\Domains\Operation\Quality\Models\Ncr;
+use App\Domains\Operation\Quality\Models\QualityEvent;
+use App\Domains\Operation\Quality\Models\Scar;
+use App\Domains\Operation\Quality\Services\NcrService;
+use App\Domains\Operation\Quality\Services\ScarService;
 use Livewire\Livewire;
 
 beforeEach(function (): void {
     setupAuthzRoles();
     config()->set('app.key', 'base64:'.base64_encode(random_bytes(32)));
     $this->artisan('migrate', [
-        '--path' => base_path('app/Modules/Operation/Quality/Database/Migrations'),
+        '--path' => base_path('app/Domains/Operation/Quality/Database/Migrations'),
         '--realpath' => true,
     ]);
-    require_once base_path('app/Modules/Operation/Quality/Routes/web.php');
+    require_once base_path('app/Domains/Operation/Quality/Routes/web.php');
     (new NcrWorkflowSeeder)->run();
     (new ScarWorkflowSeeder)->run();
 });

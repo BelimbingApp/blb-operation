@@ -1,6 +1,6 @@
 <?php
 
-use App\Modules\Operation\IT\Livewire\Tickets\Show;
+use App\Domains\Operation\IT\Livewire\Tickets\Show;
 
 /** @var Show $this */
 ?>

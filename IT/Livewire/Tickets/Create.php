@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Modules\Operation\IT\Livewire\Tickets;
+namespace App\Domains\Operation\IT\Livewire\Tickets;
 
 use App\Base\Authz\DTO\Actor;
-use App\Modules\Operation\IT\Services\TicketService;
+use App\Domains\Operation\IT\Services\TicketService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;

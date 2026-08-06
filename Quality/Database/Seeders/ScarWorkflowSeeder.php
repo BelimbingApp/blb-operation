@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Modules\Operation\Quality\Database\Seeders;
+namespace App\Domains\Operation\Quality\Database\Seeders;
 
-use App\Modules\Operation\Quality\Models\Scar;
+use App\Domains\Operation\Quality\Models\Scar;
 use Illuminate\Database\Seeder;
 
 class ScarWorkflowSeeder extends Seeder

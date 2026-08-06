@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Modules\Operation\IT\Livewire\Concerns;
+namespace App\Domains\Operation\IT\Livewire\Concerns;
 
 use App\Base\Workflow\Models\StatusConfig;
-use App\Modules\Operation\IT\Models\Ticket;
+use App\Domains\Operation\IT\Models\Ticket;
 
 /**
  * Shared presentation helpers for ticket Livewire pages: badge variants

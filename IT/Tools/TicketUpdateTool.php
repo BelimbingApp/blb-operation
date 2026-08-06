@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\Operation\IT\Tools;
+namespace App\Domains\Operation\IT\Tools;
 
 use App\Base\AI\Enums\ToolCategory;
 use App\Base\AI\Enums\ToolRiskClass;
@@ -11,10 +11,10 @@ use App\Base\AI\Tools\ToolArgumentException;
 use App\Base\AI\Tools\ToolResult;
 use App\Base\Authz\DTO\Actor;
 use App\Base\Authz\Enums\PrincipalType;
-use App\Modules\Core\AI\Services\AgentExecutionContext;
-use App\Modules\Core\Employee\Models\Employee;
-use App\Modules\Operation\IT\Models\Ticket;
-use App\Modules\Operation\IT\Services\TicketService;
+use App\Core\AI\Services\AgentExecutionContext;
+use App\Core\Employee\Models\Employee;
+use App\Domains\Operation\IT\Models\Ticket;
+use App\Domains\Operation\IT\Services\TicketService;
 
 /**
  * Ticket interaction tool for coding agents.

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\Operation\Quality\Contracts;
+namespace App\Domains\Operation\Quality\Contracts;
 
 interface NumberingService
 {

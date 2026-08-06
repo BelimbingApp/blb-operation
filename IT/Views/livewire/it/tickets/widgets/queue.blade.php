@@ -1,5 +1,8 @@
 <?php
-/** @var \App\Modules\Operation\IT\Livewire\Widgets\TicketQueue $this */
+
+use App\Domains\Operation\IT\Livewire\Widgets\TicketQueue;
+
+/** @var TicketQueue $this */
 ?>
 
 <div>

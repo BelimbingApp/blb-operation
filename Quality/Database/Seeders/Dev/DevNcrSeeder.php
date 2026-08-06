@@ -1,18 +1,18 @@
 <?php
 
-namespace App\Modules\Operation\Quality\Database\Seeders\Dev;
+namespace App\Domains\Operation\Quality\Database\Seeders\Dev;
 
 use App\Base\Authz\DTO\Actor;
 use App\Base\Database\Seeders\DevSeeder;
-use App\Modules\Core\Company\Models\Company;
-use App\Modules\Core\User\Database\Seeders\Dev\DevUserSeeder;
-use App\Modules\Core\User\Models\User;
-use App\Modules\Operation\Quality\Database\Seeders\Dev\Concerns\BuildsNcrWorkflowSteps;
-use App\Modules\Operation\Quality\Database\Seeders\NcrWorkflowSeeder;
-use App\Modules\Operation\Quality\Database\Seeders\ScarWorkflowSeeder;
-use App\Modules\Operation\Quality\Models\Ncr;
-use App\Modules\Operation\Quality\Services\NcrService;
-use App\Modules\Operation\Quality\Services\ScarService;
+use App\Core\Company\Models\Company;
+use App\Core\User\Database\Seeders\Dev\DevUserSeeder;
+use App\Core\User\Models\User;
+use App\Domains\Operation\Quality\Database\Seeders\Dev\Concerns\BuildsNcrWorkflowSteps;
+use App\Domains\Operation\Quality\Database\Seeders\NcrWorkflowSeeder;
+use App\Domains\Operation\Quality\Database\Seeders\ScarWorkflowSeeder;
+use App\Domains\Operation\Quality\Models\Ncr;
+use App\Domains\Operation\Quality\Services\NcrService;
+use App\Domains\Operation\Quality\Services\ScarService;
 use Illuminate\Support\Carbon;
 
 /**

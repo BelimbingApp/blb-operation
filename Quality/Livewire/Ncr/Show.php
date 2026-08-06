@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Modules\Operation\Quality\Livewire\Ncr;
+namespace App\Domains\Operation\Quality\Livewire\Ncr;
 
 use App\Base\Authz\DTO\Actor;
 use App\Base\Foundation\Livewire\Concerns\InteractsWithNotifications;
-use App\Modules\Operation\Quality\Models\Ncr;
-use App\Modules\Operation\Quality\Services\EvidenceService;
-use App\Modules\Operation\Quality\Services\NcrService;
+use App\Domains\Operation\Quality\Models\Ncr;
+use App\Domains\Operation\Quality\Services\EvidenceService;
+use App\Domains\Operation\Quality\Services\NcrService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;

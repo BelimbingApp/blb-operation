@@ -1,16 +1,16 @@
 <?php
 
-namespace App\Modules\Operation\IT\Database\Seeders;
+namespace App\Domains\Operation\IT\Database\Seeders;
 
 use App\Base\Workflow\Models\KanbanColumn;
 use App\Base\Workflow\Models\StatusConfig;
 use App\Base\Workflow\Models\StatusTransition;
 use App\Base\Workflow\Models\Workflow;
-use App\Modules\Operation\IT\Models\Ticket;
-use App\Modules\Operation\IT\Workflow\AssignTicket;
-use App\Modules\Operation\IT\Workflow\MarkTicketResolved;
-use App\Modules\Operation\IT\Workflow\RequiresAssigneeGuard;
-use App\Modules\Operation\IT\Workflow\ReturnTicketToQueue;
+use App\Domains\Operation\IT\Models\Ticket;
+use App\Domains\Operation\IT\Workflow\AssignTicket;
+use App\Domains\Operation\IT\Workflow\MarkTicketResolved;
+use App\Domains\Operation\IT\Workflow\RequiresAssigneeGuard;
+use App\Domains\Operation\IT\Workflow\ReturnTicketToQueue;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Seeder;
 

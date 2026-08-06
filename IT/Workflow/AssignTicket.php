@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\Operation\IT\Workflow;
+namespace App\Domains\Operation\IT\Workflow;
 
 use App\Base\Workflow\Contracts\TransitionAction;
 use App\Base\Workflow\DTO\TransitionContext;

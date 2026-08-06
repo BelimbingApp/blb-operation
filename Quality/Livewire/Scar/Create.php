@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Modules\Operation\Quality\Livewire\Scar;
+namespace App\Domains\Operation\Quality\Livewire\Scar;
 
 use App\Base\Authz\DTO\Actor;
-use App\Modules\Operation\Quality\Models\Ncr;
-use App\Modules\Operation\Quality\Services\ScarService;
+use App\Domains\Operation\Quality\Models\Ncr;
+use App\Domains\Operation\Quality\Services\ScarService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;

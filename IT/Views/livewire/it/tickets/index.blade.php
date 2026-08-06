@@ -1,5 +1,8 @@
 <?php
-/** @var \App\Modules\Operation\IT\Livewire\Tickets\Index $this */
+
+use App\Domains\Operation\IT\Livewire\Tickets\Index;
+
+/** @var Index $this */
 ?>
 
 <div>

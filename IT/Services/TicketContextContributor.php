@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Modules\Operation\IT\Services;
+namespace App\Domains\Operation\IT\Services;
 
 use App\Base\Workflow\Models\StatusHistory;
-use App\Modules\Core\AI\Contracts\AgentTaskContextContributor;
-use App\Modules\Core\AI\DTO\PromptSection;
-use App\Modules\Core\AI\Enums\PromptSectionType;
-use App\Modules\Operation\IT\Models\Ticket;
+use App\Core\AI\Contracts\AgentTaskContextContributor;
+use App\Core\AI\DTO\PromptSection;
+use App\Core\AI\Enums\PromptSectionType;
+use App\Domains\Operation\IT\Models\Ticket;
 use Illuminate\Database\Eloquent\Model;
 
 /**

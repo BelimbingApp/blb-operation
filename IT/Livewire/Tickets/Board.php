@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\Operation\IT\Livewire\Tickets;
+namespace App\Domains\Operation\IT\Livewire\Tickets;
 
 use App\Base\Authz\Contracts\AuthorizationService;
 use App\Base\Authz\DTO\Actor;
@@ -9,10 +9,10 @@ use App\Base\Workflow\Models\KanbanColumn;
 use App\Base\Workflow\Models\StatusConfig;
 use App\Base\Workflow\Models\StatusTransition;
 use App\Base\Workflow\Services\TransitionManager;
-use App\Modules\Core\Employee\Models\Employee;
-use App\Modules\Operation\IT\Livewire\Concerns\PresentsTicketBadges;
-use App\Modules\Operation\IT\Models\Ticket;
-use App\Modules\Operation\IT\Services\TicketService;
+use App\Core\Employee\Models\Employee;
+use App\Domains\Operation\IT\Livewire\Concerns\PresentsTicketBadges;
+use App\Domains\Operation\IT\Models\Ticket;
+use App\Domains\Operation\IT\Services\TicketService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;

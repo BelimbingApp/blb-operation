@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Modules\Operation\Quality\Services;
+namespace App\Domains\Operation\Quality\Services;
 
-use App\Modules\Operation\Quality\Contracts\NumberingService;
-use App\Modules\Operation\Quality\Models\Ncr;
-use App\Modules\Operation\Quality\Models\Scar;
+use App\Domains\Operation\Quality\Contracts\NumberingService;
+use App\Domains\Operation\Quality\Models\Ncr;
+use App\Domains\Operation\Quality\Models\Scar;
 
 /**
  * Default sequential numbering for NCRs and SCARs.

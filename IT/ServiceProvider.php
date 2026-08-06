@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Modules\Operation\IT;
+namespace App\Domains\Operation\IT;
 
 use App\Base\AI\Contracts\Tool;
-use App\Modules\Core\AI\Contracts\AgentTaskContextContributor;
-use App\Modules\Operation\IT\Services\TicketContextContributor;
-use App\Modules\Operation\IT\Tools\TicketUpdateTool;
+use App\Core\AI\Contracts\AgentTaskContextContributor;
+use App\Domains\Operation\IT\Services\TicketContextContributor;
+use App\Domains\Operation\IT\Tools\TicketUpdateTool;
 use Illuminate\Support\ServiceProvider as BaseServiceProvider;
 
 class ServiceProvider extends BaseServiceProvider

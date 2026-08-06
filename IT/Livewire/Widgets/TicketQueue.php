@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Modules\Operation\IT\Livewire\Widgets;
+namespace App\Domains\Operation\IT\Livewire\Widgets;
 
 use App\Base\Dashboard\Widget;
-use App\Modules\Operation\IT\Livewire\Concerns\PresentsTicketBadges;
-use App\Modules\Operation\IT\Models\Ticket;
+use App\Domains\Operation\IT\Livewire\Concerns\PresentsTicketBadges;
+use App\Domains\Operation\IT\Models\Ticket;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;

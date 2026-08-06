@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Modules\Operation\IT\Livewire\Tickets;
+namespace App\Domains\Operation\IT\Livewire\Tickets;
 
 use App\Base\Foundation\Livewire\SearchablePaginatedList;
-use App\Modules\Core\Employee\Models\Employee;
-use App\Modules\Operation\IT\Livewire\Concerns\PresentsTicketBadges;
-use App\Modules\Operation\IT\Models\Ticket;
+use App\Core\Employee\Models\Employee;
+use App\Domains\Operation\IT\Livewire\Concerns\PresentsTicketBadges;
+use App\Domains\Operation\IT\Models\Ticket;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Carbon;

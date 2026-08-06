@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Modules\Operation\IT\Database\Factories;
+namespace App\Domains\Operation\IT\Database\Factories;
 
-use App\Modules\Core\Company\Models\Company;
-use App\Modules\Core\Employee\Models\Employee;
-use App\Modules\Operation\IT\Models\Ticket;
+use App\Core\Company\Models\Company;
+use App\Core\Employee\Models\Employee;
+use App\Domains\Operation\IT\Models\Ticket;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Model;
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\Operation\IT\Database\Seeders\Dev;
+namespace App\Domains\Operation\IT\Database\Seeders\Dev;
 
 use App\Base\Authz\Database\Seeders\AuthzRoleCapabilitySeeder;
 use App\Base\Authz\DTO\Actor;
@@ -9,13 +9,13 @@ use App\Base\Authz\Models\PrincipalRole;
 use App\Base\Authz\Models\Role;
 use App\Base\Database\Seeders\DevSeeder;
 use App\Base\Workflow\Models\StatusHistory;
-use App\Modules\Core\Company\Models\Company;
-use App\Modules\Core\Employee\Models\Employee;
-use App\Modules\Core\User\Database\Seeders\Dev\DevUserSeeder;
-use App\Modules\Core\User\Models\User;
-use App\Modules\Operation\IT\Database\Seeders\TicketWorkflowSeeder;
-use App\Modules\Operation\IT\Models\Ticket;
-use App\Modules\Operation\IT\Services\TicketService;
+use App\Core\Company\Models\Company;
+use App\Core\Employee\Models\Employee;
+use App\Core\User\Database\Seeders\Dev\DevUserSeeder;
+use App\Core\User\Models\User;
+use App\Domains\Operation\IT\Database\Seeders\TicketWorkflowSeeder;
+use App\Domains\Operation\IT\Models\Ticket;
+use App\Domains\Operation\IT\Services\TicketService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 

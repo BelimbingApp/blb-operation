@@ -1,5 +1,8 @@
 <?php
-/** @var \App\Modules\Operation\Quality\Livewire\Scar\Index $this */
+
+use App\Domains\Operation\Quality\Livewire\Scar\Index;
+
+/** @var Index $this */
 ?>
 
 <div>

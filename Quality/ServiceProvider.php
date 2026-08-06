@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Modules\Operation\Quality;
+namespace App\Domains\Operation\Quality;
 
-use App\Modules\Operation\Quality\Contracts\NumberingService;
-use App\Modules\Operation\Quality\Services\DefaultNumberingService;
+use App\Domains\Operation\Quality\Contracts\NumberingService;
+use App\Domains\Operation\Quality\Services\DefaultNumberingService;
 use Illuminate\Support\ServiceProvider as BaseServiceProvider;
 
 class ServiceProvider extends BaseServiceProvider

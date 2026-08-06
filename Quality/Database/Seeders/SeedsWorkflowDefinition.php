@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\Operation\Quality\Database\Seeders;
+namespace App\Domains\Operation\Quality\Database\Seeders;
 
 use App\Base\Workflow\Models\KanbanColumn;
 use App\Base\Workflow\Models\StatusConfig;

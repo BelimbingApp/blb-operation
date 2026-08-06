@@ -1,6 +1,6 @@
 <?php
 
-use App\Modules\Operation\Quality\Livewire\Scar\Show;
+use App\Domains\Operation\Quality\Livewire\Scar\Show;
 
 /** @var Show $this */
 ?>

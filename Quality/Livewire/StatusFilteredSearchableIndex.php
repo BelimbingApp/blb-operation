@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\Operation\Quality\Livewire;
+namespace App\Domains\Operation\Quality\Livewire;
 
 use App\Base\Foundation\Livewire\SearchablePaginatedList;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;

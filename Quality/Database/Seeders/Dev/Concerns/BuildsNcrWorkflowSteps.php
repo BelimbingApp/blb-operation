@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Modules\Operation\Quality\Database\Seeders\Dev\Concerns;
+namespace App\Domains\Operation\Quality\Database\Seeders\Dev\Concerns;
 
-use App\Modules\Core\User\Models\User;
+use App\Core\User\Models\User;
 
 trait BuildsNcrWorkflowSteps
 {

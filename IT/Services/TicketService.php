@@ -1,17 +1,17 @@
 <?php
 
-namespace App\Modules\Operation\IT\Services;
+namespace App\Domains\Operation\IT\Services;
 
 use App\Base\Authz\Contracts\AuthorizationService;
 use App\Base\Authz\DTO\Actor;
 use App\Base\Workflow\DTO\TransitionContext;
 use App\Base\Workflow\DTO\TransitionResult;
 use App\Base\Workflow\Models\StatusHistory;
-use App\Modules\Core\Employee\Models\Employee;
-use App\Modules\Core\User\Models\User;
-use App\Modules\Operation\IT\Exceptions\TicketMutationDenied;
-use App\Modules\Operation\IT\Models\Ticket;
-use App\Modules\Operation\IT\Notifications\TicketCommentPosted;
+use App\Core\Employee\Models\Employee;
+use App\Core\User\Models\User;
+use App\Domains\Operation\IT\Exceptions\TicketMutationDenied;
+use App\Domains\Operation\IT\Models\Ticket;
+use App\Domains\Operation\IT\Notifications\TicketCommentPosted;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;

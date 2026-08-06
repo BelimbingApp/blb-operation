@@ -1,17 +1,17 @@
 <?php
 
-namespace App\Modules\Operation\IT\Livewire\Tickets;
+namespace App\Domains\Operation\IT\Livewire\Tickets;
 
 use App\Base\Authz\Contracts\AuthorizationService;
 use App\Base\Authz\DTO\Actor;
 use App\Base\Foundation\Livewire\Concerns\InteractsWithNotifications;
 use App\Base\Workflow\Models\StatusHistory;
 use App\Base\Workflow\Models\StatusTransition;
-use App\Modules\Core\Employee\Models\Employee;
-use App\Modules\Core\User\Models\User;
-use App\Modules\Operation\IT\Livewire\Concerns\PresentsTicketBadges;
-use App\Modules\Operation\IT\Models\Ticket;
-use App\Modules\Operation\IT\Services\TicketService;
+use App\Core\Employee\Models\Employee;
+use App\Core\User\Models\User;
+use App\Domains\Operation\IT\Livewire\Concerns\PresentsTicketBadges;
+use App\Domains\Operation\IT\Models\Ticket;
+use App\Domains\Operation\IT\Services\TicketService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Facades\Auth;

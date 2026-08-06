@@ -1,6 +1,6 @@
 <?php
 
-use App\Modules\Operation\Quality\Livewire\Ncr\Show;
+use App\Domains\Operation\Quality\Livewire\Ncr\Show;
 
 /** @var Show $this */
 ?>

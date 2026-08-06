@@ -1,9 +1,9 @@
 <?php
 
-use App\Modules\Operation\IT\Livewire\Tickets\Board;
-use App\Modules\Operation\IT\Livewire\Tickets\Create;
-use App\Modules\Operation\IT\Livewire\Tickets\Index;
-use App\Modules\Operation\IT\Livewire\Tickets\Show;
+use App\Domains\Operation\IT\Livewire\Tickets\Board;
+use App\Domains\Operation\IT\Livewire\Tickets\Create;
+use App\Domains\Operation\IT\Livewire\Tickets\Index;
+use App\Domains\Operation\IT\Livewire\Tickets\Show;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth'])->group(function () {

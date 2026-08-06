@@ -1,11 +1,11 @@
 <?php
 
-use App\Modules\Operation\Quality\Livewire\Ncr\Create as NcrCreate;
-use App\Modules\Operation\Quality\Livewire\Ncr\Index as NcrIndex;
-use App\Modules\Operation\Quality\Livewire\Ncr\Show as NcrShow;
-use App\Modules\Operation\Quality\Livewire\Scar\Create as ScarCreate;
-use App\Modules\Operation\Quality\Livewire\Scar\Index as ScarIndex;
-use App\Modules\Operation\Quality\Livewire\Scar\Show as ScarShow;
+use App\Domains\Operation\Quality\Livewire\Ncr\Create as NcrCreate;
+use App\Domains\Operation\Quality\Livewire\Ncr\Index as NcrIndex;
+use App\Domains\Operation\Quality\Livewire\Ncr\Show as NcrShow;
+use App\Domains\Operation\Quality\Livewire\Scar\Create as ScarCreate;
+use App\Domains\Operation\Quality\Livewire\Scar\Index as ScarIndex;
+use App\Domains\Operation\Quality\Livewire\Scar\Show as ScarShow;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth'])->group(function () {

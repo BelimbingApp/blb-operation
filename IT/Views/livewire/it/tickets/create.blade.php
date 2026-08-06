@@ -1,5 +1,8 @@
 <?php
-/** @var \App\Modules\Operation\IT\Livewire\Tickets\Create $this */
+
+use App\Domains\Operation\IT\Livewire\Tickets\Create;
+
+/** @var Create $this */
 ?>
 
 <div>

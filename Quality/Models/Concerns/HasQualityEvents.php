@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Modules\Operation\Quality\Models\Concerns;
+namespace App\Domains\Operation\Quality\Models\Concerns;
 
-use App\Modules\Operation\Quality\Models\QualityEvent;
+use App\Domains\Operation\Quality\Models\QualityEvent;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 trait HasQualityEvents

@@ -1,5 +1,8 @@
 <?php
-/** @var \App\Modules\Operation\Quality\Livewire\Ncr\Create $this */
+
+use App\Domains\Operation\Quality\Livewire\Ncr\Create;
+
+/** @var Create $this */
 ?>
 
 <div>

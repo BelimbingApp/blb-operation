@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Modules\Operation\Quality\Models;
+namespace App\Domains\Operation\Quality\Models;
 
-use App\Modules\Core\User\Models\User;
+use App\Core\User\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;

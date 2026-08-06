@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Modules\Operation\IT\Notifications;
+namespace App\Domains\Operation\IT\Notifications;
 
 use App\Base\Workflow\Models\StatusHistory;
-use App\Modules\Operation\IT\Models\Ticket;
+use App\Domains\Operation\IT\Models\Ticket;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 

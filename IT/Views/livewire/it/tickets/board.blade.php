@@ -1,5 +1,8 @@
 <?php
-/** @var \App\Modules\Operation\IT\Livewire\Tickets\Board $this */
+
+use App\Domains\Operation\IT\Livewire\Tickets\Board;
+
+/** @var Board $this */
 ?>
 
 <div>

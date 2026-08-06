@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Modules\Operation\Quality\Livewire\Scar;
+namespace App\Domains\Operation\Quality\Livewire\Scar;
 
 use App\Base\Authz\DTO\Actor;
 use App\Base\Foundation\Livewire\Concerns\InteractsWithNotifications;
 use App\Base\Workflow\DTO\TransitionContext;
 use App\Base\Workflow\DTO\TransitionResult;
-use App\Modules\Operation\Quality\Models\Scar;
-use App\Modules\Operation\Quality\Services\EvidenceService;
-use App\Modules\Operation\Quality\Services\ScarService;
+use App\Domains\Operation\Quality\Models\Scar;
+use App\Domains\Operation\Quality\Services\EvidenceService;
+use App\Domains\Operation\Quality\Services\ScarService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;

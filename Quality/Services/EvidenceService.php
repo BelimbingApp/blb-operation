@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Modules\Operation\Quality\Services;
+namespace App\Domains\Operation\Quality\Services;
 
 use App\Base\Media\Services\MediaAssetStore;
-use App\Modules\Operation\Quality\Models\QualityEvidence;
+use App\Domains\Operation\Quality\Models\QualityEvidence;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;

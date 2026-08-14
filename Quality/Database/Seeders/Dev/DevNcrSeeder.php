@@ -39,7 +39,7 @@ class DevNcrSeeder extends DevSeeder
         (new NcrWorkflowSeeder)->run();
         (new ScarWorkflowSeeder)->run();
 
-        $company = $this->licenseeCompany();
+        $company = $this->operatorPrimaryCompany();
 
         if (! $company) {
             return;

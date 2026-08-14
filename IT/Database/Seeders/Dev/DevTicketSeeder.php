@@ -50,7 +50,7 @@ class DevTicketSeeder extends DevSeeder
     {
         (new TicketWorkflowSeeder)->run();
 
-        $company = $this->licenseeCompany();
+        $company = $this->operatorPrimaryCompany();
 
         if (! $company) {
             return;

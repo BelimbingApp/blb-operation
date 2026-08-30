@@ -100,6 +100,7 @@ function createTestTicket(?Actor $actor = null): Ticket
 
     return Ticket::query()->create([
         'company_id' => $actor->companyId,
+        'created_by_user_id' => $actor->id,
         'reporter_id' => $employeeId,
         'title' => 'Test printer not working',
         'status' => 'open',

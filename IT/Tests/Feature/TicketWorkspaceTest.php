@@ -10,6 +10,7 @@ use App\Core\User\Models\User;
 use App\Domains\Operation\IT\Database\Seeders\TicketWorkflowSeeder;
 use App\Domains\Operation\IT\Exceptions\TicketMutationDenied;
 use App\Domains\Operation\IT\Livewire\Tickets\Board;
+use App\Domains\Operation\IT\Livewire\Tickets\Create;
 use App\Domains\Operation\IT\Livewire\Tickets\Index;
 use App\Domains\Operation\IT\Livewire\Tickets\Show;
 use App\Domains\Operation\IT\Livewire\Widgets\TicketQueue;
@@ -67,6 +68,81 @@ function notificationsFor(Employee $employee): array
         ->map(fn (object $row): array => json_decode($row->data, true))
         ->all();
 }
+
+/** @return array<int, array<string, mixed>> */
+function notificationsForUser(User $user): array
+{
+    return DB::table('notifications')
+        ->where('notifiable_id', $user->id)
+        ->orderBy('created_at')
+        ->get()
+        ->map(fn (object $row): array => json_decode($row->data, true))
+        ->all();
+}
+
+// -- Creation -------------------------------------------------------------------
+
+test('a user with no linked employee can file a ticket, attributed to them', function (): void {
+    $fixture = ticketFixture();
+    $filer = User::factory()->create(['company_id' => $fixture['company']->id, 'employee_id' => null]);
+
+    Livewire::actingAs($filer)
+        ->test(Create::class)
+        ->set('title', 'Laptop will not boot')
+        ->set('priority', 'high')
+        ->set('reporterEmployeeId', '')
+        ->call('store')
+        ->assertHasNoErrors();
+
+    $ticket = Ticket::query()->where('title', 'Laptop will not boot')->sole();
+
+    expect($ticket->created_by_user_id)->toBe($filer->id)
+        ->and($ticket->reporter_id)->toBeNull();
+});
+
+test('a user can file on behalf of another employee, and both filer and reporter are recorded', function (): void {
+    $fixture = ticketFixture();
+    $filer = User::factory()->create(['company_id' => $fixture['company']->id, 'employee_id' => null]);
+
+    Livewire::actingAs($filer)
+        ->test(Create::class)
+        ->set('title', 'Printer jammed at reception')
+        ->set('priority', 'medium')
+        ->set('reporterEmployeeId', (string) $fixture['reporter']->id)
+        ->call('store')
+        ->assertHasNoErrors();
+
+    $ticket = Ticket::query()->where('title', 'Printer jammed at reception')->sole();
+
+    expect($ticket->created_by_user_id)->toBe($filer->id)
+        ->and($ticket->reporter_id)->toBe($fixture['reporter']->id);
+});
+
+test('the filer receives comment notifications on a ticket they filed for someone else', function (): void {
+    $fixture = ticketFixture();
+    $filer = User::factory()->create(['company_id' => $fixture['company']->id, 'employee_id' => null]);
+    $ticket = app(TicketService::class)->create(
+        Actor::forUser($filer),
+        $fixture['reporter'],
+        ['title' => 'On behalf of ticket', 'priority' => 'medium'],
+    );
+
+    app(TicketService::class)->postComment($ticket, Actor::forUser($fixture['admin']), 'Looking into it.');
+
+    $filerNotifications = notificationsForUser($filer);
+
+    expect($filerNotifications)->toHaveCount(1)
+        ->and($filerNotifications[0]['kind'])->toBe('comment')
+        ->and($filerNotifications[0]['body'])->toContain('Looking into it.');
+});
+
+test('the Create form pre-selects the filer\'s own linked employee as reporter', function (): void {
+    $fixture = ticketFixture();
+
+    Livewire::actingAs($fixture['admin'])
+        ->test(Create::class)
+        ->assertSet('reporterEmployeeId', (string) $fixture['admin']->employee_id);
+});
 
 // -- Assignment ---------------------------------------------------------------
 
@@ -318,8 +394,10 @@ test('the workspace 404s for tickets of another company', function (): void {
     $fixture = ticketFixture();
     $otherCompany = Company::factory()->create();
     $otherReporter = Employee::factory()->create(['company_id' => $otherCompany->id]);
+    $otherFiler = User::factory()->create(['company_id' => $otherCompany->id]);
     $ticket = Ticket::query()->create([
         'company_id' => $otherCompany->id,
+        'created_by_user_id' => $otherFiler->id,
         'reporter_id' => $otherReporter->id,
         'title' => 'Foreign ticket',
         'status' => 'open',
@@ -373,8 +451,10 @@ test('the index never shows tickets from other companies', function (): void {
 
     $otherCompany = Company::factory()->create();
     $otherReporter = Employee::factory()->create(['company_id' => $otherCompany->id]);
+    $otherFiler = User::factory()->create(['company_id' => $otherCompany->id]);
     Ticket::query()->create([
         'company_id' => $otherCompany->id,
+        'created_by_user_id' => $otherFiler->id,
         'reporter_id' => $otherReporter->id,
         'title' => 'Foreign secret ticket',
         'status' => 'open',
@@ -429,6 +509,7 @@ test('the done board window is based on resolution time rather than later edits'
     $oldResolution = now()->subDays(15);
     Ticket::query()->create([
         'company_id' => $fixture['company']->id,
+        'created_by_user_id' => $fixture['admin']->id,
         'reporter_id' => $fixture['reporter']->id,
         'title' => 'Old resolved ticket edited today',
         'status' => 'resolved',

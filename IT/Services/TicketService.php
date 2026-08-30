@@ -31,20 +31,30 @@ class TicketService
     /**
      * Create a new IT ticket with initial status history.
      *
-     * @param  Actor  $actor  The principal performing the action (audit/auth context)
-     * @param  Employee  $reporter  The employee reporting the ticket (business ownership)
+     * Creation is user-only: an agent has no ticket-creation tool, so the
+     * filer is always the acting user, recorded on `created_by_user_id`.
+     * The reporter is an optional, separate fact — who the ticket is about,
+     * not who filed it.
+     *
+     * @param  Actor  $actor  The user filing the ticket (audit/auth context)
+     * @param  Employee|null  $reporter  The employee the ticket is about, if named
      * @param  array{title: string, priority: string, category?: string|null, description?: string|null, location?: string|null, metadata?: array<string, mixed>|null}  $data
      */
-    public function create(Actor $actor, Employee $reporter, array $data): Ticket
+    public function create(Actor $actor, ?Employee $reporter, array $data): Ticket
     {
-        if ($actor->companyId === null || $actor->companyId !== (int) $reporter->company_id) {
+        if (! $actor->isUser() || $actor->companyId === null) {
+            throw new TicketMutationDenied(__('Only a signed-in user may file a ticket.'));
+        }
+
+        if ($reporter !== null && $actor->companyId !== (int) $reporter->company_id) {
             throw new TicketMutationDenied(__('The reporter must belong to the acting company.'));
         }
 
         return DB::transaction(function () use ($actor, $reporter, $data): Ticket {
             $ticket = Ticket::query()->create([
-                'company_id' => $reporter->company_id,
-                'reporter_id' => $reporter->id,
+                'company_id' => $actor->companyId,
+                'created_by_user_id' => $actor->id,
+                'reporter_id' => $reporter?->id,
                 'status' => 'open',
                 'title' => $data['title'],
                 'priority' => $data['priority'],
@@ -187,9 +197,9 @@ class TicketService
      */
     private function notifyCommentStakeholders(Ticket $ticket, Actor $actor, StatusHistory $history): void
     {
-        $ticket->loadMissing('reporter.user', 'assignee.user');
+        $ticket->loadMissing('filedBy', 'reporter.user', 'assignee.user');
 
-        $recipients = collect([$ticket->reporter?->user, $ticket->assignee?->user])
+        $recipients = collect([$ticket->filedBy, $ticket->reporter?->user, $ticket->assignee?->user])
             ->filter()
             ->filter(fn (User $user): bool => (int) $user->company_id === (int) $ticket->company_id)
             ->unique(fn (User $user): int => $user->id);

@@ -99,28 +99,48 @@ return new class extends Migration
             ->pluck('users.id', 'operation_it_tickets.id');
 
         $assignments = [];
-        $unresolved = [];
+        $orphaned = [];
+        $ambiguous = [];
 
         foreach ($ticketIds as $ticketId) {
             $ticketId = (int) $ticketId;
 
             $userId = $openingActors->get($ticketId) ?? $reporterUserIds->get($ticketId);
 
-            if ($userId === null) {
-                $unresolved[] = $ticketId;
+            if ($userId !== null) {
+                $assignments[$ticketId] = (int) $userId;
 
                 continue;
             }
 
-            $assignments[$ticketId] = (int) $userId;
+            if (($reporterUserCounts->get($ticketId) ?? 0) > 1) {
+                $ambiguous[] = $ticketId;
+            } else {
+                $orphaned[] = $ticketId;
+            }
         }
 
-        if ($unresolved !== []) {
+        if ($orphaned !== [] || $ambiguous !== []) {
+            // Reviewed on the sibling fix in belimbing#453: one message
+            // covering both failure classes was wrong, not merely vague, for
+            // whichever class it didn't name — "no reporter with a linked
+            // user" is false for a ticket whose reporter has *several*.
+            $reasons = [];
+
+            if ($orphaned !== []) {
+                $reasons[] = 'ticket(s) ['.implode(', ', $orphaned)
+                    .'] have no user actor on their opening status-history row and no reporter with a linked user';
+            }
+
+            if ($ambiguous !== []) {
+                $reasons[] = 'ticket(s) ['.implode(', ', $ambiguous)
+                    .'] have no user actor on their opening status-history row and a reporter linked to more than one user';
+            }
+
             throw new RuntimeException(
-                'Cannot backfill operation_it_tickets.created_by_user_id: ticket(s) ['
-                .implode(', ', $unresolved)
-                .'] have no user actor on their opening status-history row and no reporter with a linked user.'
-                .' Assign a filer to each before retrying.'
+                'Cannot backfill operation_it_tickets.created_by_user_id: '
+                .implode('; ', $reasons)
+                .'. Assign a filer to each before retrying.'
             );
         }
 

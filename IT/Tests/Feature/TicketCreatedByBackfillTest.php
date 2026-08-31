@@ -44,8 +44,34 @@ it('leaves created_by_user_id unresolved (throws) when the reporter employee has
 
     // preflightAssignments() throws before the schema change, so down() has
     // nothing to undo — this is the "cannot backfill, refuse loudly" path.
+    // The message must say "more than one", not "no ... linked user" — a
+    // reporter with several linked users is the opposite problem, and an
+    // operator reading the wrong reason would look for the wrong fix
+    // (kiat-fc's review on this PR: the two failure classes need distinct,
+    // accurate wording, not one message reused for both).
     expect(fn () => $migration->up())
-        ->toThrow(RuntimeException::class, 'no user actor on their opening status-history row and no reporter with a linked user');
+        ->toThrow(RuntimeException::class, 'a reporter linked to more than one user');
+});
+
+it('names an orphaned ticket with its own accurate reason, distinct from an ambiguous one', function (): void {
+    $migration = ticketCreatedByMigration();
+    $migration->down();
+
+    $company = Company::factory()->create();
+    $orphanedEmployee = Employee::factory()->create(['company_id' => $company->id]);
+
+    DB::table('operation_it_tickets')->insert([
+        'company_id' => $company->id,
+        'reporter_id' => $orphanedEmployee->id,
+        'status' => 'open',
+        'priority' => 'medium',
+        'title' => 'Orphaned reporter ticket',
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    expect(fn () => $migration->up())
+        ->toThrow(RuntimeException::class, 'no reporter with a linked user');
 });
 
 it('resolves created_by_user_id from the reporter when exactly one user is linked', function (): void {

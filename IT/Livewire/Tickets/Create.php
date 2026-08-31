@@ -3,6 +3,7 @@
 namespace App\Domains\Operation\IT\Livewire\Tickets;
 
 use App\Base\Authz\DTO\Actor;
+use App\Core\Employee\Models\Employee;
 use App\Domains\Operation\IT\Services\TicketService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
@@ -22,6 +23,19 @@ class Create extends Component
 
     public ?string $location = null;
 
+    /**
+     * The employee this ticket is about, if any — "On behalf of". Prefilled
+     * with the filer's own linked employee; empty string means none.
+     */
+    public string $reporterEmployeeId = '';
+
+    public function mount(): void
+    {
+        $employeeId = Auth::user()->employee_id;
+
+        $this->reporterEmployeeId = $employeeId !== null ? (string) $employeeId : '';
+    }
+
     public function store(TicketService $ticketService): void
     {
         // Empty selects/inputs arrive as '' — normalize to null so `nullable` applies.
@@ -38,15 +52,21 @@ class Create extends Component
         ]);
 
         $user = Auth::user();
-        $reporter = $user->employee;
-
-        if (! $reporter) {
-            Session::flash('error', __('Your account must be linked to an employee record.'));
-
-            return;
-        }
-
         $actor = Actor::forUser($user);
+
+        $reporter = null;
+
+        if ($this->reporterEmployeeId !== '') {
+            $reporter = Employee::query()
+                ->where('company_id', $actor->companyId)
+                ->find((int) $this->reporterEmployeeId);
+
+            if ($reporter === null) {
+                $this->addError('reporterEmployeeId', __('That employee cannot be named on a ticket.'));
+
+                return;
+            }
+        }
 
         $ticket = $ticketService->create($actor, $reporter, $validated);
 
@@ -55,8 +75,31 @@ class Create extends Component
         $this->redirect(route('it.tickets.show', $ticket), navigate: true);
     }
 
+    /**
+     * Active employees of the acting company, for the "On behalf of" picker.
+     *
+     * @return array<int, array{value: string, label: string}>
+     */
+    public function reporterOptions(): array
+    {
+        $companyId = Auth::user()->company_id;
+
+        return Employee::query()
+            ->where('company_id', $companyId)
+            ->where('status', 'active')
+            ->orderBy('full_name')
+            ->get()
+            ->map(fn (Employee $employee): array => [
+                'value' => (string) $employee->id,
+                'label' => $employee->displayName(),
+            ])
+            ->all();
+    }
+
     public function render(): View
     {
-        return view('operation-it::livewire.it.tickets.create');
+        return view('operation-it::livewire.it.tickets.create', [
+            'reporterOptions' => $this->reporterOptions(),
+        ]);
     }
 }

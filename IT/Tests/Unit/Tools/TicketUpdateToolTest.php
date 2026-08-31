@@ -27,6 +27,7 @@ it('attributes ticket comments to the authenticated user employee record', funct
     ]);
     $ticket = Ticket::query()->create([
         'company_id' => $company->id,
+        'created_by_user_id' => $user->id,
         'reporter_id' => $employee->id,
         'status' => 'open',
         'priority' => 'medium',
@@ -62,6 +63,7 @@ it('does not let the Lara fallback cross a company boundary', function () {
 
     $ticket = Ticket::query()->create([
         'company_id' => $company->id,
+        'created_by_user_id' => $user->id,
         'reporter_id' => Employee::LARA_ID,
         'status' => 'open',
         'priority' => 'medium',

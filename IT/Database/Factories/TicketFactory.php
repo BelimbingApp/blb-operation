@@ -4,6 +4,7 @@ namespace App\Domains\Operation\IT\Database\Factories;
 
 use App\Core\Company\Models\Company;
 use App\Core\Employee\Models\Employee;
+use App\Core\User\Models\User;
 use App\Domains\Operation\IT\Models\Ticket;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Model;
@@ -23,7 +24,8 @@ class TicketFactory extends Factory
     public function configure(): static
     {
         return $this->afterCreating(function (Ticket $ticket): void {
-            if ((int) Employee::query()->whereKey($ticket->reporter_id)->value('company_id') !== (int) $ticket->company_id) {
+            if ($ticket->reporter_id !== null
+                && (int) Employee::query()->whereKey($ticket->reporter_id)->value('company_id') !== (int) $ticket->company_id) {
                 $ticket->reporter_id = Employee::factory()->create(['company_id' => $ticket->company_id])->id;
             }
 
@@ -45,6 +47,7 @@ class TicketFactory extends Factory
     {
         return [
             'company_id' => Company::factory(),
+            'created_by_user_id' => User::factory(),
             'reporter_id' => Employee::factory(),
             'assignee_id' => null,
             'status' => 'open',
@@ -83,6 +86,19 @@ class TicketFactory extends Factory
         return $this->state(
             fn (array $attributes) => [
                 'priority' => 'critical',
+            ],
+        );
+    }
+
+    /**
+     * Indicate that the ticket has no reporter named — filed by a user with
+     * no linked employee, on their own behalf.
+     */
+    public function unreported(): static
+    {
+        return $this->state(
+            fn (array $attributes) => [
+                'reporter_id' => null,
             ],
         );
     }

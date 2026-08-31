@@ -2,7 +2,10 @@
 
 use App\Domains\Operation\IT\Livewire\Tickets\Create;
 
-/** @var Create $this */
+/**
+ * @var Create $this
+ * @var array<int, array{value: string, label: string}> $reporterOptions
+ */
 ?>
 
 <div>
@@ -62,6 +65,19 @@ use App\Domains\Operation\IT\Livewire\Tickets\Create;
                     placeholder="{{ __('Describe the issue in detail...') }}"
                     :error="$errors->first('description')"
                 />
+
+                <x-ui.select
+                    id="reporterEmployeeId"
+                    wire:model="reporterEmployeeId"
+                    label="{{ __('On behalf of') }}"
+                    :help="__('Leave as yourself unless you are filing for someone else.')"
+                    :error="$errors->first('reporterEmployeeId')"
+                >
+                    <option value="">{{ __('None') }}</option>
+                    @foreach($reporterOptions as $option)
+                        <option value="{{ $option['value'] }}">{{ $option['label'] }}</option>
+                    @endforeach
+                </x-ui.select>
 
                 <div class="flex items-center gap-4">
                     <x-ui.button type="submit" variant="primary">

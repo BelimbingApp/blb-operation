@@ -6,6 +6,7 @@ use App\Base\Workflow\Concerns\HasWorkflowStatus;
 use App\Base\Workflow\Contracts\PresentsWorkflowNotifications;
 use App\Core\Company\Models\Company;
 use App\Core\Employee\Models\Employee;
+use App\Core\User\Models\User;
 use App\Domains\Operation\IT\Database\Factories\TicketFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -17,7 +18,8 @@ use Illuminate\Support\Carbon;
  *
  * @property int $id
  * @property int $company_id
- * @property int $reporter_id
+ * @property int $created_by_user_id
+ * @property int|null $reporter_id
  * @property int|null $assignee_id
  * @property string $status
  * @property string $priority
@@ -30,7 +32,8 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read Company $company
- * @property-read Employee $reporter
+ * @property-read User $filedBy
+ * @property-read Employee|null $reporter
  * @property-read Employee|null $assignee
  */
 class Ticket extends Model implements PresentsWorkflowNotifications
@@ -62,6 +65,7 @@ class Ticket extends Model implements PresentsWorkflowNotifications
      */
     protected $fillable = [
         'company_id',
+        'created_by_user_id',
         'reporter_id',
         'assignee_id',
         'status',
@@ -144,7 +148,15 @@ class Ticket extends Model implements PresentsWorkflowNotifications
     }
 
     /**
-     * Get the employee who reported this ticket.
+     * Get the user who filed this ticket.
+     */
+    public function filedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by_user_id');
+    }
+
+    /**
+     * Get the employee this ticket is about, if named.
      */
     public function reporter(): BelongsTo
     {

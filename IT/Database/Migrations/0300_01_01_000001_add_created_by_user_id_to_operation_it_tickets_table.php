@@ -75,10 +75,27 @@ return new class extends Migration
             ->groupBy('flow_id')
             ->map(fn ($rows) => (int) $rows->first()->actor_id);
 
+        // `users.employee_id` is nullable and foreign-keyed but not unique
+        // (steward review, #453's identical fallback shape flagged there and
+        // fixed here too): more than one user can link to the reporter's
+        // employee, and a plain `pluck('users.id', 'operation_it_tickets.id')`
+        // over the join would keep whichever row the database returned last
+        // for that ticket — an arbitrary, silently wrong filer. Counted per
+        // ticket first so an ambiguous reporter is treated as unresolved
+        // (this migration's own rule, applied consistently) rather than guessed.
+        $reporterUserCounts = DB::table('operation_it_tickets')
+            ->join('employees', 'employees.id', '=', 'operation_it_tickets.reporter_id')
+            ->join('users', 'users.employee_id', '=', 'employees.id')
+            ->whereIn('operation_it_tickets.id', $ticketIds)
+            ->selectRaw('operation_it_tickets.id as ticket_id, count(*) as user_count')
+            ->groupBy('operation_it_tickets.id')
+            ->pluck('user_count', 'ticket_id');
+
         $reporterUserIds = DB::table('operation_it_tickets')
             ->join('employees', 'employees.id', '=', 'operation_it_tickets.reporter_id')
             ->join('users', 'users.employee_id', '=', 'employees.id')
             ->whereIn('operation_it_tickets.id', $ticketIds)
+            ->whereIn('operation_it_tickets.id', $reporterUserCounts->filter(fn (int $count): bool => $count === 1)->keys())
             ->pluck('users.id', 'operation_it_tickets.id');
 
         $assignments = [];

@@ -18,20 +18,33 @@ use Illuminate\Support\Facades\DB;
  * fresh install runs the corrected `000001` and reaches this file with
  * nothing to do.
  *
- * Which rows it will touch, and why that set is safe:
+ * Which rows it will touch, and which guard actually protects which row:
  *
  * - `created_by_user_id = id` is the defect's exact fingerprint. Nothing
  *   else in the codebase writes a ticket's own primary key into that column.
  * - The buggy value only ever came from the *fallback* branch. The primary
  *   branch — the user actor on the ticket's opening `open` status-history
  *   row — was always read through distinct column names and was always
- *   correct. So any ticket that has such a row is skipped outright.
- * - Every ticket-creation path in the application (`TicketService::create()`,
+ *   correct, so any ticket carrying such a row is skipped outright. Every
+ *   ticket-creation path in the application (`TicketService::create()`,
  *   which the Livewire component, the dev seeder and the tools all go
- *   through) writes that opening row inside the same transaction as the
- *   ticket. Tickets created *after* the buggy migration therefore always
- *   have one, and this repair can never reach them, however their ids
- *   happen to line up.
+ *   through) writes that row in the same transaction as the ticket, and
+ *   nothing anywhere deletes status history, so this covers every ticket
+ *   the application has ever made.
+ * - A fingerprinted ticket with *no* opening row is not covered by that
+ *   guard at all. Only the third one covers it: the repair recomputes the
+ *   reporter fallback from the employee-to-user links as they stand **now**
+ *   and rewrites only where that disagrees with the stored value. So a
+ *   correctly-attributed row of that shape — inserted outside the
+ *   application, whose reporter's link has moved since — would be rewritten
+ *   to the reporter's current user. Constructed and reproduced in review
+ *   (opus-5-review-o on belimbing#487): 1 rewritten to 2.
+ *
+ *   Not reachable from this change: the two migrations ship together and run
+ *   back to back, so wherever the fingerprint exists at all the stored value
+ *   came from the broken backfill and is wrong anyway. It is written down
+ *   because the next reader adding a fourth condition needs to know which
+ *   guard is doing the work, and conditions 1 and 2 are not it.
  *
  * What remains is exactly the affected class: tickets that predate the
  * backfill, carry no user actor on an opening row, and were resolved from

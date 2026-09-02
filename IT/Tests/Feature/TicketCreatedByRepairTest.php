@@ -43,11 +43,14 @@ function stageDivergentUserIds(Company $company, int $count = 3): void
  * Guarantee a user exists carrying exactly this id.
  *
  * The defect can only corrupt data silently where the ticket's own id also
- * happens to be a live user id — the column is foreign-keyed, so anywhere
- * else the buggy backfill raised a foreign-key violation and the migration
- * failed outright instead. Staging the damaged state means staging that
- * coincidence explicitly, because PostgreSQL does not hand it to us the way
- * a fresh SQLite database does.
+ * happens to be a live user id. The column is foreign-keyed and
+ * `foreign_key_constraints` defaults to true, so on *both* drivers — SQLite
+ * as much as PostgreSQL — anywhere else the buggy backfill raised a
+ * foreign-key violation and the migration aborted instead. Only the odds of
+ * the coincidence differ: a fresh SQLite database counts both tables up from
+ * 1, so it hits it constantly, while PostgreSQL's sequences drift apart.
+ * Staging the damaged state therefore means staging that coincidence
+ * explicitly rather than waiting for a driver to hand it over.
  */
 function ensureUserWithId(Company $company, int $id): void
 {

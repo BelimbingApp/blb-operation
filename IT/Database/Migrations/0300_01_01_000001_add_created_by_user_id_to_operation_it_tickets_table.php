@@ -78,8 +78,8 @@ return new class extends Migration
         // `users.employee_id` is nullable and foreign-keyed but not unique
         // (steward review, #453's identical fallback shape flagged there and
         // fixed here too): more than one user can link to the reporter's
-        // employee, and a plain `pluck('users.id', 'operation_it_tickets.id')`
-        // over the join would keep whichever row the database returned last
+        // employee, and a join that resolved a user per ticket without
+        // counting first would keep whichever row the database returned last
         // for that ticket — an arbitrary, silently wrong filer. Counted per
         // ticket first so an ambiguous reporter is treated as unresolved
         // (this migration's own rule, applied consistently) rather than guessed.
@@ -91,12 +91,20 @@ return new class extends Migration
             ->groupBy('operation_it_tickets.id')
             ->pluck('user_count', 'ticket_id');
 
+        // Both sides of this join have a column called `id`, so the row the
+        // driver hands back carries one `id` key and the later column in the
+        // select list wins. `pluck('users.id', 'operation_it_tickets.id')`
+        // therefore built a ticket => *ticket* map, not a ticket => user map,
+        // and every ticket in this fallback class was filed as its own primary
+        // key (belimbing#487). Alias both sides so the two ids stay distinct —
+        // the same shape #453's sibling backfill already uses.
         $reporterUserIds = DB::table('operation_it_tickets')
             ->join('employees', 'employees.id', '=', 'operation_it_tickets.reporter_id')
             ->join('users', 'users.employee_id', '=', 'employees.id')
             ->whereIn('operation_it_tickets.id', $ticketIds)
             ->whereIn('operation_it_tickets.id', $reporterUserCounts->filter(fn (int $count): bool => $count === 1)->keys())
-            ->pluck('users.id', 'operation_it_tickets.id');
+            ->select('operation_it_tickets.id as ticket_id', 'users.id as user_id')
+            ->pluck('user_id', 'ticket_id');
 
         $assignments = [];
         $orphaned = [];

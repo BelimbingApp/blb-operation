@@ -12,6 +12,75 @@ use Illuminate\Support\Facades\Schema;
  * to file a ticket at all. `created_by_user_id` becomes the required filer
  * (creation is user-only — an agent has no ticket-creation tool); `reporter_id`
  * relaxes to an optional subject.
+ *
+ * ---------------------------------------------------------------------------
+ * OPERATORS: stuck on `duplicate column name: created_by_user_id`? Read this.
+ * ---------------------------------------------------------------------------
+ *
+ * If you are here because `php artisan migrate` is failing with a duplicate
+ * `created_by_user_id` column, an earlier run of this migration aborted part
+ * way through on **SQLite**, and the fix you have just pulled cannot get past
+ * the wreckage on its own. This is not caused by the fix. It follows from the
+ * released, broken version of this file (belimbing#487), which wrote each
+ * ticket's own primary key into `created_by_user_id` and so tripped the
+ * foreign key on the first ticket whose id was not also a live user id.
+ *
+ * Why SQLite specifically: only `PostgresGrammar` sets `$transactions = true`,
+ * so `supportsSchemaTransactions()` is false on SQLite. There is no
+ * transaction around the migration, so the failure keeps everything that
+ * already succeeded. On PostgreSQL the failed statement poisons the
+ * enclosing transaction (`25P02`) and the whole migration rolls back, leaving
+ * the deployment untouched and simply re-runnable — none of this applies
+ * there.
+ *
+ * What an aborted SQLite run leaves behind (reproduced, not inferred):
+ *
+ * - `created_by_user_id` exists, still nullable, with its foreign key.
+ * - `reporter_id` is already relaxed to nullable — the same `Schema::table()`
+ *   call did both, before the backfill.
+ * - Some tickets carry a value, some are NULL, and the ones that carry a
+ *   value carry the *wrong* one (their own id).
+ * - The closing `nullable(false)` never ran.
+ * - The migration was **never recorded**: `Migrator::runUp()` logs it only
+ *   after `up()` returns, so a re-run tries to add the column again.
+ *
+ * Recovery: drop the foreign key and the column together through the schema
+ * builder, then migrate normally. In `php artisan tinker`:
+ *
+ *     use Illuminate\Database\Schema\Blueprint;
+ *     use Illuminate\Support\Facades\Schema;
+ *
+ *     Schema::table('operation_it_tickets', function (Blueprint $table): void {
+ *         $table->dropForeign(['created_by_user_id']);
+ *         $table->dropColumn('created_by_user_id');
+ *     });
+ *
+ * then, back in the shell:
+ *
+ *     php artisan migrate
+ *
+ * Do **not** reach for plain SQL. `ALTER TABLE operation_it_tickets DROP
+ * COLUMN created_by_user_id` is the obvious move and **SQLite rejects it**,
+ * because `->constrained('users')` names the column in a foreign key:
+ *
+ *     SQLSTATE[HY000]: General error: 1 error in table operation_it_tickets
+ *     after drop column: unknown column "created_by_user_id" in foreign key
+ *     definition
+ *
+ * The schema builder works precisely because it drops the constraint first.
+ * This migration's own `down()` is equally safe if you would rather call it,
+ * with one difference: it also puts `reporter_id` back to NOT NULL, which you
+ * do not need — leaving it nullable is where this migration ends up anyway,
+ * and the corrected backfill then runs from a clean state.
+ *
+ * Verified end to end on a stuck SQLite database: two fallback tickets, ids
+ * 5 and 500, recovered and re-migrated to their true filers 9 and 10.
+ *
+ * Do **not** recover by hand-inserting a row into `migrations` to mark this
+ * as applied. The backfill never finished, so the column would stay nullable,
+ * partially populated, and populated wrongly where it is populated at all —
+ * a half-applied schema recorded as complete. `0300_01_01_000002` repairs
+ * persisted rows, but it cannot repair a schema that was never finished.
  */
 return new class extends Migration
 {
@@ -78,8 +147,8 @@ return new class extends Migration
         // `users.employee_id` is nullable and foreign-keyed but not unique
         // (steward review, #453's identical fallback shape flagged there and
         // fixed here too): more than one user can link to the reporter's
-        // employee, and a plain `pluck('users.id', 'operation_it_tickets.id')`
-        // over the join would keep whichever row the database returned last
+        // employee, and a join that resolved a user per ticket without
+        // counting first would keep whichever row the database returned last
         // for that ticket — an arbitrary, silently wrong filer. Counted per
         // ticket first so an ambiguous reporter is treated as unresolved
         // (this migration's own rule, applied consistently) rather than guessed.
@@ -91,12 +160,20 @@ return new class extends Migration
             ->groupBy('operation_it_tickets.id')
             ->pluck('user_count', 'ticket_id');
 
+        // Both sides of this join have a column called `id`, so the row the
+        // driver hands back carries one `id` key and the later column in the
+        // select list wins. `pluck('users.id', 'operation_it_tickets.id')`
+        // therefore built a ticket => *ticket* map, not a ticket => user map,
+        // and every ticket in this fallback class was filed as its own primary
+        // key (belimbing#487). Alias both sides so the two ids stay distinct —
+        // the same shape #453's sibling backfill already uses.
         $reporterUserIds = DB::table('operation_it_tickets')
             ->join('employees', 'employees.id', '=', 'operation_it_tickets.reporter_id')
             ->join('users', 'users.employee_id', '=', 'employees.id')
             ->whereIn('operation_it_tickets.id', $ticketIds)
             ->whereIn('operation_it_tickets.id', $reporterUserCounts->filter(fn (int $count): bool => $count === 1)->keys())
-            ->pluck('users.id', 'operation_it_tickets.id');
+            ->select('operation_it_tickets.id as ticket_id', 'users.id as user_id')
+            ->pluck('user_id', 'ticket_id');
 
         $assignments = [];
         $orphaned = [];

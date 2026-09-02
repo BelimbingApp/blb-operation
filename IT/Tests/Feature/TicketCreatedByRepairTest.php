@@ -42,13 +42,30 @@ function stageDivergentUserIds(Company $company, int $count = 3): void
 /**
  * Guarantee a user exists carrying exactly this id.
  *
- * The defect can only corrupt data silently where the ticket's own id also
+ * The defect can only write a wrong value where the ticket's own id also
  * happens to be a live user id. The column is foreign-keyed and
- * `foreign_key_constraints` defaults to true, so on *both* drivers — SQLite
- * as much as PostgreSQL — anywhere else the buggy backfill raised a
- * foreign-key violation and the migration aborted instead. Only the odds of
- * the coincidence differ: a fresh SQLite database counts both tables up from
- * 1, so it hits it constantly, while PostgreSQL's sequences drift apart.
+ * `foreign_key_constraints` defaults to true, so on *both* drivers the
+ * row-by-row `UPDATE` is rejected anywhere else.
+ *
+ * What differs is what survives that rejection, and it matters because the
+ * driver that behaves worse is the one production runs. Only `PostgresGrammar`
+ * sets `$transactions = true`, so `supportsSchemaTransactions()` is true on
+ * PostgreSQL and **false on SQLite**. On PostgreSQL the failed statement
+ * poisons the enclosing transaction (`25P02` — the next read cannot even
+ * execute) and the migration rolls back whole, leaving nothing behind. On
+ * SQLite there is no such wrapper, so every write that already succeeded is
+ * kept: one run **corrupts and then aborts**. Reproduced in review with two
+ * fallback tickets, id 5 coinciding with a live-but-wrong user and id 500
+ * with no such user — PostgreSQL kept nothing, SQLite kept ticket 5 at
+ * `created_by_user_id = 5` when the true filer was 9.
+ *
+ * The likelihood of the coincidence differs too, and not because SQLite
+ * starts counting at 1 — PostgreSQL does as well. It is that SQLite hands
+ * out `max(rowid)+1`, which recompacts and never burns an id, while
+ * PostgreSQL sequences are non-transactional and burn one on every rollback,
+ * conflict and delete. Visible in this very suite: SQLite gives ticket 1
+ * against user 4, PostgreSQL gives ticket 48.
+ *
  * Staging the damaged state therefore means staging that coincidence
  * explicitly rather than waiting for a driver to hand it over.
  */

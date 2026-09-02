@@ -12,6 +12,52 @@ use Illuminate\Support\Facades\Schema;
  * to file a ticket at all. `created_by_user_id` becomes the required filer
  * (creation is user-only — an agent has no ticket-creation tool); `reporter_id`
  * relaxes to an optional subject.
+ *
+ * ---------------------------------------------------------------------------
+ * OPERATORS: stuck on `duplicate column name: created_by_user_id`? Read this.
+ * ---------------------------------------------------------------------------
+ *
+ * If you are here because `php artisan migrate` is failing with a duplicate
+ * `created_by_user_id` column, an earlier run of this migration aborted part
+ * way through on **SQLite**, and the fix you have just pulled cannot get past
+ * the wreckage on its own. This is not caused by the fix. It follows from the
+ * released, broken version of this file (belimbing#487), which wrote each
+ * ticket's own primary key into `created_by_user_id` and so tripped the
+ * foreign key on the first ticket whose id was not also a live user id.
+ *
+ * Why SQLite specifically: only `PostgresGrammar` sets `$transactions = true`,
+ * so `supportsSchemaTransactions()` is false on SQLite. There is no
+ * transaction around the migration, so the failure keeps everything that
+ * already succeeded. On PostgreSQL the failed statement poisons the
+ * enclosing transaction (`25P02`) and the whole migration rolls back, leaving
+ * the deployment untouched and simply re-runnable — none of this applies
+ * there.
+ *
+ * What an aborted SQLite run leaves behind (reproduced, not inferred):
+ *
+ * - `created_by_user_id` exists, still nullable, with its foreign key.
+ * - `reporter_id` is already relaxed to nullable — the same `Schema::table()`
+ *   call did both, before the backfill.
+ * - Some tickets carry a value, some are NULL, and the ones that carry a
+ *   value carry the *wrong* one (their own id).
+ * - The closing `nullable(false)` never ran.
+ * - The migration was **never recorded**: `Migrator::runUp()` logs it only
+ *   after `up()` returns, so a re-run tries to add the column again.
+ *
+ * Recovery: drop the half-applied column, then migrate normally.
+ *
+ *     ALTER TABLE operation_it_tickets DROP COLUMN created_by_user_id;
+ *     php artisan migrate
+ *
+ * That is enough on its own. `reporter_id` is already nullable, which is
+ * where this migration leaves it anyway, and the corrected backfill then runs
+ * from a clean state.
+ *
+ * Do **not** recover by hand-inserting a row into `migrations` to mark this
+ * as applied. The backfill never finished, so the column would stay nullable,
+ * partially populated, and populated wrongly where it is populated at all —
+ * a half-applied schema recorded as complete. `0300_01_01_000002` repairs
+ * persisted rows, but it cannot repair a schema that was never finished.
  */
 return new class extends Migration
 {

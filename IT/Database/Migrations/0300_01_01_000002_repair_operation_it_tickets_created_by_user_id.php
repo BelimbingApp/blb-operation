@@ -32,19 +32,27 @@ use Illuminate\Support\Facades\DB;
  *   nothing anywhere deletes status history, so this covers every ticket
  *   the application has ever made.
  * - A fingerprinted ticket with *no* opening row is not covered by that
- *   guard at all. Only the third one covers it: the repair recomputes the
- *   reporter fallback from the employee-to-user links as they stand **now**
- *   and rewrites only where that disagrees with the stored value. So a
- *   correctly-attributed row of that shape — inserted outside the
- *   application, whose reporter's link has moved since — would be rewritten
- *   to the reporter's current user. Constructed and reproduced in review
- *   (opus-5-review-o on belimbing#487): 1 rewritten to 2.
+ *   guard at all. **Condition 3 is the only thing covering it**, and it is
+ *   load-bearing on every deployment, a fresh one included. The *corrected*
+ *   `000001` writes fingerprinted-but-correct rows of its own accord
+ *   wherever a ticket's id and its reporter's only user's id happen to
+ *   match — reproduced in review with ticket 7 whose reporter's single user
+ *   is also id 7. Condition 3 recomputes the reporter fallback and rewrites
+ *   only where that disagrees with the stored value, so it leaves that row
+ *   at 7 on both drivers. Delete condition 3 and correct data is destroyed;
+ *   it is not a formality.
  *
- *   Not reachable from this change: the two migrations ship together and run
- *   back to back, so wherever the fingerprint exists at all the stored value
- *   came from the broken backfill and is wrong anyway. It is written down
- *   because the next reader adding a fourth condition needs to know which
- *   guard is doing the work, and conditions 1 and 2 are not it.
+ *   The cost of reading links as they stand **now** is the other direction:
+ *   a correctly-attributed row of this shape whose reporter's employee-to-user
+ *   link has moved since would be rewritten to the reporter's current user.
+ *   Constructed and reproduced in review (opus-5-review-o on belimbing#487):
+ *   1 rewritten to 2. No window opens for that here, because the two
+ *   migrations ship in one release and run back to back in a single
+ *   `migrate` invocation — the drift would have to happen between them.
+ *
+ *   Written down because the next reader adding a fourth condition needs to
+ *   know that conditions 1 and 2 do not reach this row class and condition 3
+ *   is what holds it.
  *
  * What remains is exactly the affected class: tickets that predate the
  * backfill, carry no user actor on an opening row, and were resolved from

@@ -31,28 +31,36 @@ use Illuminate\Support\Facades\DB;
  *   through) writes that row in the same transaction as the ticket, and
  *   nothing anywhere deletes status history, so this covers every ticket
  *   the application has ever made.
- * - A fingerprinted ticket with *no* opening row is not covered by that
- *   guard at all. **Condition 3 is the only thing covering it**, and it is
- *   load-bearing on every deployment, a fresh one included. The *corrected*
- *   `000001` writes fingerprinted-but-correct rows of its own accord
- *   wherever a ticket's id and its reporter's only user's id happen to
- *   match — reproduced in review with ticket 7 whose reporter's single user
- *   is also id 7. Condition 3 recomputes the reporter fallback and rewrites
- *   only where that disagrees with the stored value, so it leaves that row
- *   at 7 on both drivers. Delete condition 3 and correct data is destroyed;
- *   it is not a formality.
+ * - A fingerprinted ticket with *no* opening row is not reached by that guard
+ *   at all, and the class is real rather than hypothetical: the *corrected*
+ *   `000001` writes fingerprinted-but-correct rows of its own accord wherever
+ *   a ticket's id and its reporter's only user's id happen to match —
+ *   reproduced in review with ticket 7 whose reporter's single user is also
+ *   id 7, which this repair correctly leaves at 7 on both drivers.
  *
- *   The cost of reading links as they stand **now** is the other direction:
- *   a correctly-attributed row of this shape whose reporter's employee-to-user
- *   link has moved since would be rewritten to the reporter's current user.
- *   Constructed and reproduced in review (opus-5-review-o on belimbing#487):
- *   1 rewritten to 2. No window opens for that here, because the two
- *   migrations ship in one release and run back to back in a single
- *   `migrate` invocation — the drift would have to happen between them.
+ *   What keeps that row correct is *agreement*, not a third guard: the repair
+ *   recomputes the same reporter fallback `000001` just used and gets the
+ *   same answer back. The `$userId === $ticketId` skip further down is **not**
+ *   what saves it. Every candidate reached that point through
+ *   `whereColumn('created_by_user_id', 'id')`, so the comparison is exactly
+ *   "recompute equals stored", and skipping can only ever elide a write that
+ *   would have changed nothing. Deleting it leaves ticket 7 at 7 with every
+ *   test still passing — checked, not assumed. It earns its place by keeping
+ *   the reported repair count honest, not by protecting data.
  *
- *   Written down because the next reader adding a fourth condition needs to
- *   know that conditions 1 and 2 do not reach this row class and condition 3
- *   is what holds it.
+ *   The real exposure is drift, and *ordering* is what closes it. Because the
+ *   fallback is recomputed from employee-to-user links as they stand **now**,
+ *   a correctly-attributed row of this shape whose reporter's link had moved
+ *   since would be rewritten to the reporter's current user — reproduced in
+ *   review (opus-5-review-o on belimbing#487), 1 rewritten to 2. No window
+ *   opens here: these two files are immediate neighbours in the global sorted
+ *   migration list, with nothing from any module sorting between them, so
+ *   they run back to back in one `migrate` invocation and the drift would
+ *   have to happen between them.
+ *
+ *   Written down because the next reader needs to know that conditions 1 and
+ *   2 do not reach this row class, and that what does hold it is the
+ *   recomputation agreeing — not the skip that looks like a guard.
  *
  * What remains is exactly the affected class: tickets that predate the
  * backfill, carry no user actor on an opening row, and were resolved from
@@ -119,9 +127,10 @@ return new class extends Migration
                 continue;
             }
 
-            // Where the two id spaces happened to coincide the stored value
-            // is already the right one — SQLite installs filled both tables
-            // in lockstep often enough that this is the common case there.
+            // Recompute equals stored. Every candidate got here through
+            // `created_by_user_id = id`, so this is a write that would change
+            // nothing — skipped so the reported count means what it says.
+            // Not a data guard; see the note in the class docblock.
             if ((int) $userId === $ticketId) {
                 continue;
             }

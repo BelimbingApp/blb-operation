@@ -59,12 +59,17 @@ function stageDivergentUserIds(Company $company, int $count = 3): void
  * with no such user — PostgreSQL kept nothing, SQLite kept ticket 5 at
  * `created_by_user_id = 5` when the true filer was 9.
  *
- * The likelihood of the coincidence differs too, and not because SQLite
- * starts counting at 1 — PostgreSQL does as well. It is that SQLite hands
- * out `max(rowid)+1`, which recompacts and never burns an id, while
- * PostgreSQL sequences are non-transactional and burn one on every rollback,
- * conflict and delete. Visible in this very suite: SQLite gives ticket 1
- * against user 4, PostgreSQL gives ticket 48.
+ * Do not read the id spread in this suite as a property of real deployments.
+ * Laravel's `$table->id()` emits `integer primary key autoincrement` on
+ * SQLite, so it does not recycle ids after a delete any more than PostgreSQL
+ * does. The reason the same test sees ticket 1 here and ticket 48 on
+ * PostgreSQL is `RefreshDatabase` rolling every test back: SQLite keeps
+ * `sqlite_sequence` in an ordinary table, so a rolled-back insert hands the
+ * id straight back, while PostgreSQL's `nextval` is non-transactional and
+ * burns it. Both checked directly rather than reasoned about. How far apart
+ * the two id spaces drift on a real deployment is a separate question this
+ * suite answers nothing about — which is the whole reason the coincidence is
+ * staged explicitly below instead of being inferred from a driver.
  *
  * Staging the damaged state therefore means staging that coincidence
  * explicitly rather than waiting for a driver to hand it over.

@@ -44,14 +44,37 @@ use Illuminate\Support\Facades\Schema;
  * - The migration was **never recorded**: `Migrator::runUp()` logs it only
  *   after `up()` returns, so a re-run tries to add the column again.
  *
- * Recovery: drop the half-applied column, then migrate normally.
+ * Recovery: drop the foreign key and the column together through the schema
+ * builder, then migrate normally. In `php artisan tinker`:
  *
- *     ALTER TABLE operation_it_tickets DROP COLUMN created_by_user_id;
+ *     use Illuminate\Database\Schema\Blueprint;
+ *     use Illuminate\Support\Facades\Schema;
+ *
+ *     Schema::table('operation_it_tickets', function (Blueprint $table): void {
+ *         $table->dropForeign(['created_by_user_id']);
+ *         $table->dropColumn('created_by_user_id');
+ *     });
+ *
+ * then, back in the shell:
+ *
  *     php artisan migrate
  *
- * That is enough on its own. `reporter_id` is already nullable, which is
- * where this migration leaves it anyway, and the corrected backfill then runs
- * from a clean state.
+ * Do **not** reach for plain SQL. `ALTER TABLE operation_it_tickets DROP
+ * COLUMN created_by_user_id` is the obvious move and **SQLite rejects it**,
+ * because `->constrained('users')` names the column in a foreign key:
+ *
+ *     SQLSTATE[HY000]: General error: 1 error in table operation_it_tickets
+ *     after drop column: unknown column "created_by_user_id" in foreign key
+ *     definition
+ *
+ * The schema builder works precisely because it drops the constraint first.
+ * This migration's own `down()` is equally safe if you would rather call it,
+ * with one difference: it also puts `reporter_id` back to NOT NULL, which you
+ * do not need — leaving it nullable is where this migration ends up anyway,
+ * and the corrected backfill then runs from a clean state.
+ *
+ * Verified end to end on a stuck SQLite database: two fallback tickets, ids
+ * 5 and 500, recovered and re-migrated to their true filers 9 and 10.
  *
  * Do **not** recover by hand-inserting a row into `migrations` to mark this
  * as applied. The backfill never finished, so the column would stay nullable,
